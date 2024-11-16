@@ -1,4 +1,3 @@
-# CMPM-121-Final-Project
 # Devlog Entry - 11/15/24
 
 # Introducing the Team
