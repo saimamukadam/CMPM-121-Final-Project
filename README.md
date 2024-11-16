@@ -1,9 +1,9 @@
 # Devlog Entry - 11/15/24
 
 # Introducing the Team
-Tools Lead - Krithik Dhandapani
-Engine Lead - Myles Anderrson
-Design Lead - Saima Mukadam
+1. Tools Lead - Krithik Dhandapani
+2. Engine Lead - Myles Anderrson
+3. Design Lead - Saima Mukadam
 
 # Tools and Materials
 1. We will use the Phaser framework for our game. We chose Phaser because we each have some experience using it in the past.
