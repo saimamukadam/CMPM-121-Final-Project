@@ -28,7 +28,9 @@ let cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 //continuous movement key
 let fKey!: Phaser.Input.Keyboard.Key;
 //sowing plants key
+let zKey!: Phaser.Input.Keyboard.Key;
 let xKey!: Phaser.Input.Keyboard.Key;
+let cKey!: Phaser.Input.Keyboard.Key;
 const GRID_SIZE = 32;
 const MOVE_SPEED = 200;
 //const CONTINUOUS_MOVE_SPEED = 400;
@@ -39,6 +41,20 @@ let keyPressed = false;
 let continuousMode = false;
 let hasMovedThisTurn = false;
 
+//Values at which the plants can grow
+const GROWTH_THRESHOLDS = {
+    WATER: 50,
+    SUN: 50
+};
+
+const PLANT_STAGES = {
+    GARLIC: ['🌱', '🥬', '🧄'],  // sprout, growing, garlic
+    CUCUMBER: ['🌱', '🌿', '🥒'],   // sprout, growing, cucumber
+    TOMATO: ['🌱', '🥬', '🍅']   // sprout, growing, tomato
+};
+
+type PlantType = 'GARLIC' | 'CUCUMBER' | 'TOMATO';
+
 //New data struct for accessing tiles
 const gridTiles: { // changed "let" to "const" to remove error
     sun: number;
@@ -46,6 +62,9 @@ const gridTiles: { // changed "let" to "const" to remove error
     tile: Phaser.GameObjects.Rectangle;
     sunText: Phaser.GameObjects.Text;
     waterText: Phaser.GameObjects.Text;
+    plantType?: PlantType;
+    growthStage?: number;
+    plantText?: Phaser.GameObjects.Text;
 }[][] = []; 
 
 //Grid dimentions, use these when accessing the grid
@@ -107,7 +126,10 @@ function create(this: Phaser.Scene) {
                 water: 0, // initial water lvl
                 tile: tile, // store phaser rectangle
                 sunText: sunText,
-                waterText: waterText
+                waterText: waterText,
+                plantType: undefined,
+                growthStage: undefined,
+                plantText: this.add.text(tile.x, tile.y, '', { fontSize: '16px' }).setOrigin(0.5)
             };
         }
     }
@@ -138,8 +160,12 @@ function create(this: Phaser.Scene) {
     cursors = this.input.keyboard.createCursorKeys();
     //F key toggles continuous movement
     fKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
-    //X key toggles plant sowing
+    //X key toggles sowing of plant 1.
+    zKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    //X key toggles sowing of plant 2.
     xKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    //X key toggles sowing of plant 3.
+    cKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
 }
 
 function nearestBox(playerX: number, playerY: number): { row: number; col: number } {
@@ -167,19 +193,38 @@ function update(this: Phaser.Scene) {
     }
 
     // Display sun and water levels on each tile
-    gridTiles.forEach(row => {
-        row.forEach(tile => {
+    gridTiles.forEach((row, rowIndex) => {
+        row.forEach((tile, colIndex) => {
             tile.sunText.setText(`${tile.sun}☀`);
             tile.waterText.setText(`${tile.water}💧`);
+
+            //check if there should be plant growth on this tile
+            if (tile.plantType !== undefined) {
+                checkPlantGrowth(rowIndex, colIndex)
+            }
         });
     });
+
+    if (Phaser.Input.Keyboard.JustDown(zKey)) {
+        const { row, col } = nearestBox(player.x, player.y);
+        const tile = gridTiles[row][col];
+        tile.tile.setFillStyle(0xDDA0DD, 1); //Color
+        plantGarlic(row,col);
+    }
 
     //X key input for plant sowing
     if (Phaser.Input.Keyboard.JustDown(xKey)) {
         const { row, col } = nearestBox(player.x, player.y);
         const tile = gridTiles[row][col];
-        tile.tile.setFillStyle(0x8B4513, 1); //Color
-        checkPlantGrowth(row, col);
+        tile.tile.setFillStyle(0x228B22, 1); //Color
+        plantCucumber(row, col);
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(cKey)) {
+        const { row, col } = nearestBox(player.x, player.y);
+        const tile = gridTiles[row][col];
+        tile.tile.setFillStyle(0xFF4500, 1); //Color
+        plantTomato(row, col);
     }
 
     //Continuous movemeent when F is pressed
@@ -315,12 +360,52 @@ function accumulateWater() {
     }
 }
 
+function plantGarlic(row: number, col: number) {
+    const tile = gridTiles[row][col];
+    tile.tile.setFillStyle(0xDDA0DD, 1); // Light purple for turnip
+    tile.plantType = 'GARLIC';
+    tile.growthStage = 0;
+    checkPlantGrowth(row, col);
+}
+
+function plantCucumber(row: number, col: number) {
+    const tile = gridTiles[row][col];
+    tile.tile.setFillStyle(0x228B22, 1); // Green for cucumber
+    tile.plantType = 'CUCUMBER';
+    tile.growthStage = 0;
+    checkPlantGrowth(row, col);
+}
+
+function plantTomato(row: number, col: number) {
+    const tile = gridTiles[row][col];
+    tile.tile.setFillStyle(0xFF4500, 1); // Dark orange/red for tomato
+    tile.plantType = 'TOMATO';
+    tile.growthStage = 0;
+    checkPlantGrowth(row, col);
+}
+
 // check plant growth
 function checkPlantGrowth(row: number, col: number) {
     const tile = gridTiles[row][col];
-    if (tile.sun >= 50 && tile.water >= 30) { // then plant can grow
-        gridTiles[row][col].tile.setFillStyle(0x228B22); // change color to rep plant growth
-    } else { // plant can't grow
-        gridTiles[row][col].tile.setFillStyle(0x8B4513); // change color to rep dry a$$ land
+    
+    //If no plant is present in the given tile
+    if(!tile.plantType || tile.growthStage === undefined){
+        return;
+    }
+
+    //Checking to see if conditions are suitable for growth
+    if (tile.sun >= GROWTH_THRESHOLDS.SUN && tile.water >= GROWTH_THRESHOLDS.WATER) {
+        //increment growth stage
+        if (tile.growthStage < 2){
+            tile.growthStage++;
+        }
+        
+        //reset water content
+        tile.water = 0;
+    }
+
+    //update plant emoji
+    if(tile.plantText){
+        tile.plantText.setText(PLANT_STAGES[tile.plantType][tile.growthStage])
     }
 }
