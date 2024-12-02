@@ -54,6 +54,11 @@ const GAME_HEIGHT = config.height as number;
 const GRID_COLS = Math.floor(GAME_WIDTH / GRID_SIZE);
 const GRID_ROWS = Math.floor(GAME_HEIGHT / GRID_SIZE);
 
+const textConfig = {
+    sun: { fontSize: '12px', color: '#FFD700' },  // Gold color for sun
+    water: { fontSize: '12px', color: '#4169E1' }  // Royal blue for water
+};
+
 //Creating game instance
 new Phaser.Game(config);
 
@@ -84,8 +89,18 @@ function create(this: Phaser.Scene) {
             );
 
             // Add sun and water text objects
-            const sunText = this.add.text(tile.x, tile.y - GRID_SIZE / 4, '0', { fontSize: '16px', color: '#FFFFFF' });
-            const waterText = this.add.text(tile.x, tile.y + GRID_SIZE / 4, '0', { fontSize: '16px', color: '#FFFFFF' });
+            const sunText = this.add.text(
+                tile.x, 
+                tile.y - GRID_SIZE / 4, 
+                '☀ 0', 
+                textConfig.sun
+            ).setOrigin(0.5);
+            const waterText = this.add.text(
+                tile.x, 
+                tile.y + GRID_SIZE / 4, 
+                '💧 0', 
+                textConfig.water
+            ).setOrigin(0.5);
 
             gridTiles[row][col] = {
                 sun: 0, // initial sun lvl
@@ -154,8 +169,8 @@ function update(this: Phaser.Scene) {
     // Display sun and water levels on each tile
     gridTiles.forEach(row => {
         row.forEach(tile => {
-            tile.sunText.setText(`${tile.sun}`);
-            tile.waterText.setText(`${tile.water}`);
+            tile.sunText.setText(`${tile.sun}☀`);
+            tile.waterText.setText(`${tile.water}💧`);
         });
     });
 
@@ -220,21 +235,25 @@ function update(this: Phaser.Scene) {
                 targetX -= GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
+                hasMovedThisTurn = true;
             }
             else if (cursors.right.isDown && targetX < GAME_WIDTH - GRID_SIZE) {
                 targetX += GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
+                hasMovedThisTurn = true;
             }
             else if (cursors.up.isDown && targetY > GRID_SIZE) {
                 targetY -= GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
+                hasMovedThisTurn = true;
             }
             else if (cursors.down.isDown && targetY < GAME_HEIGHT - GRID_SIZE) {
                 targetY += GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
+                hasMovedThisTurn = true;
             }
         }
 
@@ -291,7 +310,7 @@ function accumulateWater() {
         for (let col = 0; col < GRID_COLS; col++) {
             const tile = gridTiles[row][col];
             // add random water btwn 0-10 but cap at max 100
-            tile.water = Math.min(tile.water + Phaser.Math.Between(0,10), 100);
+            tile.water = Math.min(tile.water + Phaser.Math.Between(0,5), 100);
         }
     }
 }
