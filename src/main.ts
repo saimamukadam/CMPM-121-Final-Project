@@ -39,7 +39,7 @@ let keyPressed = false;
 let continuousMode = false;
 
 //New data struct for accessing tiles
-let gridTiles: Phaser.GameObjects.Rectangle[][] = [];
+const gridTiles: Phaser.GameObjects.Rectangle[][] = [];
 
 //Grid dimentions, use these when accessing the grid
 const GAME_WIDTH = config.width as number;
