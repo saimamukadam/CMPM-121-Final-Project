@@ -24,6 +24,66 @@ const config: Phaser.Types.Core.GameConfig = {
 
 
 
+// create the instructions panel
+function createInstructionsPanel() {
+    const instructionsPanel = document.createElement('div');
+    instructionsPanel.classList.add('game-instructions');
+  
+    
+    const instructionsHeader = document.createElement('div');
+    instructionsHeader.classList.add('game-instructions-header');
+    instructionsHeader.textContent = 'GAME CONTROLS'; 
+    instructionsPanel.appendChild(instructionsHeader);
+  
+    // content text
+    const instructionsText = document.createElement('p');
+    instructionsText.innerHTML = `
+      <strong>Save Game (1-5 keys):</strong><br>
+      1 | 2 | 3 | 4 | 5<br><br>
+      <strong>Load Game (6-0 keys):</strong><br>
+      6 | 7 | 8 | 9 | 0<br><br>
+      <strong>Movement:</strong><br>
+      ↑ ↓ ← → : Grid Movement<br>
+      F : Toggle Continuous<br><br>
+      <strong>Planting:</strong><br>
+      Z : Garlic<br>
+      X : Cucumber<br>
+      C : Tomato
+    `;
+    instructionsPanel.appendChild(instructionsText);
+  
+    
+    document.body.appendChild(instructionsPanel);
+  
+    instructionsPanel.style.position = 'absolute';
+    instructionsPanel.style.bottom = '100px'; 
+    instructionsPanel.style.left = '10px';
+    instructionsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+    instructionsPanel.style.color = 'white';
+    instructionsPanel.style.padding = '10px';
+    instructionsPanel.style.borderRadius = '8px';
+    instructionsPanel.style.fontSize = '12px';
+    instructionsPanel.style.zIndex = '100';
+    instructionsPanel.style.maxWidth = '250px';
+    instructionsPanel.style.lineHeight = '2.5';
+  
+    instructionsHeader.style.fontWeight = 'bold';
+    instructionsHeader.style.color = '#FFD700';
+    instructionsHeader.style.marginBottom = '-5px'; 
+  
+    // instructions text
+    instructionsText.style.fontSize = '14px';
+    instructionsText.style.color = '#FFFFFF';
+    instructionsText.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    instructionsText.style.padding = '10px';
+    instructionsText.style.textAlign = 'center';
+    instructionsText.style.marginTop = '10px';
+  }
+  
+  // Call instructions panel
+  createInstructionsPanel();
+  
+
 
 
 export interface GameState {
@@ -316,30 +376,7 @@ function create(this: Phaser.Scene) {
     nineKey.on('down', () => loadGame(4));
     zeroKey.on('down', () => loadGame(5));
 
-    const instructionsText = this.add.text(
-        10, 
-        GAME_HEIGHT - 150, 
-        'GAME CONTROLS\n' +
-        '-------------------\n' +
-        'Save Game (1-5 keys):\n' +
-        '1 | 2 | 3 | 4 | 5\n\n' +
-        'Load Game (6-0 keys):\n' +
-        '6 | 7 | 8 | 9 | 0\n\n' +
-        'Movement:\n' +
-        '↑ ↓ ← → : Grid Movement\n' +
-        'F : Toggle Continuous\n\n' +
-        'Planting:\n' +
-        'Z : Garlic\n' +
-        'X : Cucumber\n' +
-        'C : Tomato',
-        { 
-            fontSize: '14px', 
-            color: '#FFFFFF', 
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            padding: { x: 10, y: 5 },
-            align: 'center'
-        }
-    ).setOrigin(0);
+    
 
 }
 
