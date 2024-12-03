@@ -110,6 +110,41 @@ class AutoSaveManager {
         localStorage.removeItem(AutoSaveManager.autoSaveKey);
     }
 }
+class ActionManager {
+    private actionHistory: GameAction[] = [];
+    private undoneActions: GameAction[] = [];
+    private readonly MAX_HISTORY = 10;
+
+    recordAction(action: GameAction) {
+        if (this.actionHistory.length >= this.MAX_HISTORY) {
+            this.actionHistory.shift();
+        }
+        this.actionHistory.push(action);
+        this.undoneActions = [];
+    }
+
+    undo(): GameAction | null {
+        if (this.actionHistory.length === 0) return null;
+
+        const lastAction = this.actionHistory.pop();
+        if (lastAction) {
+            this.undoneActions.push(lastAction);
+            return lastAction;
+        }
+        return null;
+    }
+
+    redo(): GameAction | null {
+        if (this.undoneActions.length === 0) return null;
+
+        const redoAction = this.undoneActions.pop();
+        if (redoAction) {
+            this.actionHistory.push(redoAction);
+            return redoAction;
+        }
+        return null;
+    }
+}
 
 class GameManager {
     private gameState: GameState;
@@ -196,6 +231,15 @@ interface GameSaveData {
     }[][];
     playerPosition: { x: number; y: number };
     continuousMode: boolean;
+}
+interface GameAction {
+    type: 'PLANT';
+    row: number;
+    col: number;
+    previousState?: {
+        plantType?: PlantType;
+        growthStage?: number;
+    };
 }
 
 interface WinCondition {
@@ -376,7 +420,10 @@ function create(this: Phaser.Scene) {
     nineKey.on('down', () => loadGame(4));
     zeroKey.on('down', () => loadGame(5));
 
-    
+    const undoKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U);
+    const redoKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+    undoKey.on('down', () => undoLastAction());
+    redoKey.on('down', () => redoLastAction());
 
 }
 
@@ -572,9 +619,21 @@ function accumulateWater() {
         }
     }
 }
+const actionManager = new ActionManager();
 
 function plantGarlic(row: number, col: number) {
     const tile = gridTiles[row][col];
+    const previousState = {
+        plantType: tile.plantType,
+        growthStage: tile.growthStage
+    };
+
+    actionManager.recordAction({
+        type: 'PLANT',
+        row,
+        col,
+        previousState
+    });
     tile.tile.setFillStyle(0xDDA0DD, 1); // Light purple for turnip
     tile.plantType = 'GARLIC';
     tile.growthStage = 0;
@@ -791,5 +850,52 @@ function loadGame(slotNumber: number): boolean {
     } catch (error) {
         console.error('Failed to load game:', error);
         return false;
+    }
+}
+
+function undoLastAction() {
+    const action = actionManager.undo();
+    if (action) {
+        const tile = gridTiles[action.row][action.col];
+        
+        
+        if (action.previousState) {
+            tile.plantType = action.previousState.plantType;
+            tile.growthStage = action.previousState.growthStage;
+            
+            
+            if (!tile.plantType) {
+                tile.tile.setFillStyle(0x000000, 0); 
+                if (tile.plantText) tile.plantText.setText('');
+            } else {
+                
+                if (tile.plantType === 'GARLIC') tile.tile.setFillStyle(0xDDA0DD, 1);
+                else if (tile.plantType === 'CUCUMBER') tile.tile.setFillStyle(0x228B22, 1);
+                else if (tile.plantType === 'TOMATO') tile.tile.setFillStyle(0xFF4500, 1);
+                
+                
+                if (tile.plantText) {
+                    tile.plantText.setText(
+                        tile.plantType && tile.growthStage !== undefined 
+                            ? PLANT_STAGES[tile.plantType][tile.growthStage] 
+                            : ''
+                    );
+                }
+            }
+        }
+    }
+}
+
+function redoLastAction() {
+    const action = actionManager.redo();
+    if (action) {
+        const tile = gridTiles[action.row][action.col];
+        
+        // Replant the crop
+        if (action.type === 'PLANT') {
+            if (tile.plantType === 'GARLIC') plantGarlic(action.row, action.col);
+            else if (tile.plantType === 'CUCUMBER') plantCucumber(action.row, action.col);
+            else if (tile.plantType === 'TOMATO') plantTomato(action.row, action.col);
+        }
     }
 }
