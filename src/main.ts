@@ -22,6 +22,18 @@ const config: Phaser.Types.Core.GameConfig = {
     }
 };
 
+interface WinCondition {
+    plantType: PlantType;
+    requiredGrowthStage: number;
+    requiredCount: number;
+}
+
+const WIN_CONDITIONS: WinCondition[] = [
+    { plantType: 'GARLIC', requiredGrowthStage: 2, requiredCount: 5 },
+    { plantType: 'CUCUMBER', requiredGrowthStage: 2, requiredCount: 5 },
+    { plantType: 'TOMATO', requiredGrowthStage: 2, requiredCount: 5 }
+];
+
 //Game variables
 let player: Phaser.GameObjects.Rectangle;
 let cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -334,6 +346,7 @@ function update(this: Phaser.Scene) {
             }
         }
     }
+    updateWinCondition.call(this)
 }
 
 // function to generate sun and water levels for each grid tile
@@ -452,5 +465,55 @@ function checkPlantGrowth(row: number, col: number) {
     //update plant emoji
     if(tile.plantText){
         tile.plantText.setText(PLANT_STAGES[tile.plantType][tile.growthStage])
+    }
+}
+
+function checkWinConditions(): boolean {
+    // Count fully grown plants of each type
+    const plantCounts = {
+        GARLIC: 0,
+        CUCUMBER: 0,
+        TOMATO: 0
+    };
+
+    //Checking all tiles
+    for (let row = 0; row < GRID_ROWS; row++) {
+        for (let col = 0; col < GRID_COLS; col++) {
+            const tile = gridTiles[row][col];
+            if (tile.plantType && tile.growthStage !== undefined) {
+                //checking win conditions
+                const winCondition = WIN_CONDITIONS.find(wc => wc.plantType === tile.plantType);
+                if (winCondition && tile.growthStage >= winCondition.requiredGrowthStage) {
+                    plantCounts[tile.plantType]++;
+                }
+            }
+        }
+    }
+
+    // Check if all win conditions are satisfied
+    return WIN_CONDITIONS.every(condition => 
+        plantCounts[condition.plantType] >= condition.requiredCount
+    );
+}
+
+//let winText: Phaser.GameObjects.Text | null = null;
+
+function updateWinCondition(this: Phaser.Scene) {
+    if (checkWinConditions()) {
+
+        //Win text
+        this.add.text(
+            GAME_WIDTH / 2,
+            GAME_HEIGHT / 2,
+            'Congrats!\nAll farming goals achieved!',
+            {
+                fontSize: '24px',
+                color: '#000000',
+                align: 'center',
+            }
+        ).setOrigin(0.5).setDepth(0.2);
+
+        // Optional: Pause the game or trigger other victory effects
+        this.scene.pause();
     }
 }
