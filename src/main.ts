@@ -22,6 +22,17 @@ const config: Phaser.Types.Core.GameConfig = {
     }
 };
 
+interface GameSaveData {
+    gridTiles: {
+        sun: number;
+        water: number;
+        plantType?: PlantType;
+        growthStage?: number;
+    }[][];
+    playerPosition: { x: number; y: number };
+    continuousMode: boolean;
+}
+
 interface WinCondition {
     plantType: PlantType;
     requiredGrowthStage: number;
@@ -178,6 +189,53 @@ function create(this: Phaser.Scene) {
     xKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
     //X key toggles sowing of plant 3.
     cKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+
+    const oneKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
+    const twoKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
+    const threeKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
+    const fourKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR);
+    const fiveKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FIVE);
+    oneKey.on('down', () => saveGame(1));
+    twoKey.on('down', () => saveGame(2));
+    threeKey.on('down', () => saveGame(3));
+    fourKey.on('down', () => saveGame(4));
+    fiveKey.on('down', () => saveGame(5));
+    const sixKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SIX);
+    const sevenKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SEVEN);
+    const eightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.EIGHT);
+    const nineKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NINE);
+    const zeroKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ZERO);
+    sixKey.on('down', () => loadGame(1));
+    sevenKey.on('down', () => loadGame(2));
+    eightKey.on('down', () => loadGame(3));
+    nineKey.on('down', () => loadGame(4));
+    zeroKey.on('down', () => loadGame(5));
+
+    const instructionsText = this.add.text(
+        10, 
+        GAME_HEIGHT - 150, 
+        'GAME CONTROLS\n' +
+        '-------------------\n' +
+        'Save Game (1-5 keys):\n' +
+        '1 | 2 | 3 | 4 | 5\n\n' +
+        'Load Game (6-0 keys):\n' +
+        '6 | 7 | 8 | 9 | 0\n\n' +
+        'Movement:\n' +
+        '↑ ↓ ← → : Grid Movement\n' +
+        'F : Toggle Continuous\n\n' +
+        'Planting:\n' +
+        'Z : Garlic\n' +
+        'X : Cucumber\n' +
+        'C : Tomato',
+        { 
+            fontSize: '14px', 
+            color: '#FFFFFF', 
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            padding: { x: 10, y: 5 },
+            align: 'center'
+        }
+    ).setOrigin(0);
+
 }
 
 function nearestBox(playerX: number, playerY: number): { row: number; col: number } {
@@ -515,5 +573,81 @@ function updateWinCondition(this: Phaser.Scene) {
 
         // Optional: Pause the game or trigger other victory effects
         this.scene.pause();
+    }
+}
+
+function saveGame(slotNumber: number): boolean {
+    try {
+        const gameState: GameSaveData = {
+            gridTiles: gridTiles.map(row => 
+                row.map(tile => ({
+                    sun: tile.sun,
+                    water: tile.water,
+                    plantType: tile.plantType,
+                    growthStage: tile.growthStage
+                }))
+            ),
+            playerPosition: { 
+                x: player.x, 
+                y: player.y 
+            },
+            continuousMode: continuousMode
+        };
+
+        localStorage.setItem(`farmgame_save_${slotNumber}`, JSON.stringify(gameState));
+        return true;
+    } catch (error) {
+        console.error('Failed to save game:', error);
+        return false;
+    }
+}
+
+function loadGame(slotNumber: number): boolean {
+    try {
+        const savedData = localStorage.getItem(`farmgame_save_${slotNumber}`);
+        if (!savedData) return false;
+
+        const loadedGame: GameSaveData = JSON.parse(savedData);
+
+        // Restore grid tiles
+        loadedGame.gridTiles.forEach((row, rowIndex) => {
+            row.forEach((tile, colIndex) => {
+                const currentTile = gridTiles[rowIndex][colIndex];
+                currentTile.sun = tile.sun;
+                currentTile.water = tile.water;
+                currentTile.plantType = tile.plantType;
+                currentTile.growthStage = tile.growthStage;
+
+                // Update tile visuals
+                if (currentTile.plantText) {
+                    currentTile.plantText.setText(
+                        tile.plantType && tile.growthStage !== undefined 
+                            ? PLANT_STAGES[tile.plantType][tile.growthStage] 
+                            : ''
+                    );
+                    
+                    // Reset tile color based on plant type
+                    if (tile.plantType === 'GARLIC') {
+                        currentTile.tile.setFillStyle(0xDDA0DD, 1);
+                    } else if (tile.plantType === 'CUCUMBER') {
+                        currentTile.tile.setFillStyle(0x228B22, 1);
+                    } else if (tile.plantType === 'TOMATO') {
+                        currentTile.tile.setFillStyle(0xFF4500, 1);
+                    }
+                }
+            });
+        });
+
+        // Restore player position and movement mode
+        player.x = loadedGame.playerPosition.x;
+        player.y = loadedGame.playerPosition.y;
+        targetX = player.x;
+        targetY = player.y;
+        continuousMode = loadedGame.continuousMode;
+
+        return true;
+    } catch (error) {
+        console.error('Failed to load game:', error);
+        return false;
     }
 }
