@@ -365,6 +365,10 @@ function plantGarlic(row: number, col: number) {
     tile.tile.setFillStyle(0xDDA0DD, 1); // Light purple for turnip
     tile.plantType = 'GARLIC';
     tile.growthStage = 0;
+    //place the sprout before checking to see if it is a valid space
+    if (tile.plantText) {
+        tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
+    }
     checkPlantGrowth(row, col);
 }
 
@@ -373,6 +377,10 @@ function plantCucumber(row: number, col: number) {
     tile.tile.setFillStyle(0x228B22, 1); // Green for cucumber
     tile.plantType = 'CUCUMBER';
     tile.growthStage = 0;
+    //place the sprout before checking to see if it is a valid space
+    if (tile.plantText) {
+        tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
+    }
     checkPlantGrowth(row, col);
 }
 
@@ -381,7 +389,36 @@ function plantTomato(row: number, col: number) {
     tile.tile.setFillStyle(0xFF4500, 1); // Dark orange/red for tomato
     tile.plantType = 'TOMATO';
     tile.growthStage = 0;
+    //place the sprout before checking to see if it is a valid space
+    if (tile.plantText) {
+        tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
+    }
     checkPlantGrowth(row, col);
+}
+
+//helper function to determine how many neighbors a plant currently has
+function plantNeighbors(row: number, col: number): number {
+    let neighbors = 0;
+
+    const directions = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1],           [0, 1],
+        [1, -1],  [1, 0],  [1, 1]
+    ];
+
+    for (const [dx, dy] of directions) {
+        const newRow = row + dx;
+        const newCol = col + dy;
+
+        //checking to see if the current position is compatible with plant growth
+        if (newRow >= 0 && newRow < GRID_ROWS &&
+            newCol >= 0 && newCol < GRID_COLS &&
+            gridTiles[newRow][newCol].plantType !== undefined
+        ) {
+            neighbors++;
+        }
+    }
+    return neighbors;
 }
 
 // check plant growth
@@ -390,6 +427,14 @@ function checkPlantGrowth(row: number, col: number) {
     
     //If no plant is present in the given tile
     if(!tile.plantType || tile.growthStage === undefined){
+        return;
+    }
+
+    const neighborCount = plantNeighbors(row, col);
+
+    if (neighborCount >= 3){
+        const tile = gridTiles[row][col];
+        tile.tile.setFillStyle(0x8B0000, 1); //Color
         return;
     }
 
