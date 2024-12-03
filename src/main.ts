@@ -22,6 +22,111 @@ const config: Phaser.Types.Core.GameConfig = {
     }
 };
 
+
+
+
+
+export interface GameState {
+    playerHealth: number;
+    playerScore: number;
+}
+
+class AutoSaveManager {
+    private static autoSaveKey = "autoSave";
+
+    // Auto-save 
+    static autoSave(gameState: GameState): void {
+        localStorage.setItem(AutoSaveManager.autoSaveKey, JSON.stringify(gameState)); 
+    }
+
+    // Load auto-saved game 
+    static loadAutoSave(): GameState | null {
+        const savedState = localStorage.getItem(AutoSaveManager.autoSaveKey);
+        return savedState ? JSON.parse(savedState) : null;
+    }
+
+    // Clear auto-save when the player manually saves or quits
+    static clearAutoSave(): void {
+        localStorage.removeItem(AutoSaveManager.autoSaveKey);
+    }
+}
+
+class GameManager {
+    private gameState: GameState;
+
+    constructor() {
+        this.gameState = {
+            playerHealth: 100,
+            playerScore: 0,
+        };
+
+        // Call auto-save every 5 seconds 
+        setInterval(() => this.autoSave(), 5000);
+    }
+
+    // Auto-save the game 
+    private autoSave(): void {
+        AutoSaveManager.autoSave(this.gameState);
+    }
+
+    // Load auto-save 
+    loadAutoSave(): void {
+        const autoSavedState = AutoSaveManager.loadAutoSave();
+        if (autoSavedState) {
+            this.gameState = autoSavedState;
+            this.askToContinue();
+        } else {
+            this.startNewGame();
+        }
+    }
+
+    // Ask the player if they want to continue from the auto-save
+    private askToContinue(): void {
+        const resume = confirm("Do you want to continue from where you left off?");
+        if (resume) {
+            this.resumeGame();
+        } else {
+            this.startNewGame();
+        }
+    }
+
+    // Resume the game from the auto-save state
+    private resumeGame(): void {
+        console.log("Resuming game...");
+        
+        
+        AutoSaveManager.clearAutoSave();
+    }
+
+    // Start a new game
+    private startNewGame(): void {
+        console.log("Starting a new game...");
+        // Reset the game state
+        this.gameState = {
+            playerHealth: 100,
+            playerScore: 0,
+            // Reset other game variables
+        };
+    }
+
+    // Example of how to manually save the game
+    saveGame(): void {
+        AutoSaveManager.clearAutoSave(); // Clear any previous auto-save
+        AutoSaveManager.autoSave(this.gameState); // Save the game state manually
+        console.log("Game saved!");
+    }
+
+    // Example of how to quit the game and clear the auto-save
+    quitGame(): void {
+        AutoSaveManager.clearAutoSave();
+        console.log("Game quit and auto-save cleared.");
+    }
+}
+
+const gameManager = new GameManager();
+gameManager.loadAutoSave();
+
+
 interface GameSaveData {
     gridTiles: {
         sun: number;
