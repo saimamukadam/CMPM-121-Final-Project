@@ -93,3 +93,23 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.game-instructions {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.5;
+}
+
+.game-instructions-header {
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 5px;
+}
