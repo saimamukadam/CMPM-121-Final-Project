@@ -42,22 +42,22 @@ const redoCropsStack: string[] = []; // Stack for redo
 
 undoButton.addEventListener("click", () => {
     if (completedCrops.length > 0) {
-      const lastCrop = completedCrops.pop()!;
-      redoCropsStack.push(lastCrop);
-      console.log("Undone: ", lastCrop);
-      
+      const lastAction = completedCrops.pop()!;
+      redoCropsStack.push(lastAction);
+      console.log("Undone:", lastAction); 
     }
   });
+  
   
   // Redo button functionality
   redoButton.addEventListener("click", () => {
     if (redoCropsStack.length > 0) {
-      const redoCrop = redoCropsStack.pop()!;
-      completedCrops.push(redoCrop);
-      console.log("Redone: ", redoCrop);
-      
+      const redoAction = redoCropsStack.pop()!;
+      completedCrops.push(redoAction);
+      console.log("Redone:", redoAction); 
     }
   });
+  
 
 // create the instructions panel
 function createInstructionsPanel() {
