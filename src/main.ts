@@ -1,6 +1,12 @@
 import "./style.css";
 import "phaser";
 
+const APP_TITLE = "Game";
+
+const canvasContainer = document.querySelector<HTMLDivElement>("#app")!;
+document.title = APP_TITLE;
+
+
 //Game configuration, will probably be placing in another file in the future
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
@@ -22,7 +28,36 @@ const config: Phaser.Types.Core.GameConfig = {
     }
 };
 
+canvasContainer.innerHTML = `
+  <h1>${APP_TITLE}</h1>
+  
+  
+`;
 
+const undoButton = document.querySelector<HTMLButtonElement>("#undoButton")!;
+const redoButton = document.querySelector<HTMLButtonElement>("#redoButton")!;
+
+const completedCrops: string[] = []; // This could be your crop data
+const redoCropsStack: string[] = []; // Stack for redo
+
+undoButton.addEventListener("click", () => {
+    if (completedCrops.length > 0) {
+      const lastCrop = completedCrops.pop()!;
+      redoCropsStack.push(lastCrop);
+      console.log("Undone: ", lastCrop);
+      
+    }
+  });
+  
+  // Redo button functionality
+  redoButton.addEventListener("click", () => {
+    if (redoCropsStack.length > 0) {
+      const redoCrop = redoCropsStack.pop()!;
+      completedCrops.push(redoCrop);
+      console.log("Redone: ", redoCrop);
+      
+    }
+  });
 
 // create the instructions panel
 function createInstructionsPanel() {
@@ -464,28 +499,44 @@ function update(this: Phaser.Scene) {
         });
     });
 
-    if (Phaser.Input.Keyboard.JustDown(zKey)) {
-        const { row, col } = nearestBox(player.x, player.y);
-        const tile = gridTiles[row][col];
-        tile.tile.setFillStyle(0xDDA0DD, 1); //Color
-        plantGarlic(row,col);
-    }
+    // Z key input for planting garlic
+if (Phaser.Input.Keyboard.JustDown(zKey)) {
+    const { row, col } = nearestBox(player.x, player.y);
+    const tile = gridTiles[row][col];
+    tile.tile.setFillStyle(0xDDA0DD, 1); // Color for garlic
+    plantGarlic(row, col);
 
-    //X key input for plant sowing
-    if (Phaser.Input.Keyboard.JustDown(xKey)) {
-        const { row, col } = nearestBox(player.x, player.y);
-        const tile = gridTiles[row][col];
-        tile.tile.setFillStyle(0x228B22, 1); //Color
-        plantCucumber(row, col);
-    }
+    // Record this planting action to completedCrops
+    completedCrops.push(`Garlic planted at row ${row}, col ${col}`);
+    // Clear the redo stack whenever a new action is done
+    redoCropsStack.length = 0; // Ensuring redo stack is cleared when a new action occurs
+}
 
-    if (Phaser.Input.Keyboard.JustDown(cKey)) {
-        const { row, col } = nearestBox(player.x, player.y);
-        const tile = gridTiles[row][col];
-        tile.tile.setFillStyle(0xFF4500, 1); //Color
-        plantTomato(row, col);
-    }
+// X key input for planting cucumber
+if (Phaser.Input.Keyboard.JustDown(xKey)) {
+    const { row, col } = nearestBox(player.x, player.y);
+    const tile = gridTiles[row][col];
+    tile.tile.setFillStyle(0x228B22, 1); // Color for cucumber
+    plantCucumber(row, col);
 
+    // Record this planting action to completedCrops
+    completedCrops.push(`Cucumber planted at row ${row}, col ${col}`);
+    // Clear the redo stack whenever a new action is done
+    redoCropsStack.length = 0;
+}
+
+// C key input for planting tomato
+if (Phaser.Input.Keyboard.JustDown(cKey)) {
+    const { row, col } = nearestBox(player.x, player.y);
+    const tile = gridTiles[row][col];
+    tile.tile.setFillStyle(0xFF4500, 1); // Color for tomato
+    plantTomato(row, col);
+
+    // Record this planting action to completedCrops
+    completedCrops.push(`Tomato planted at row ${row}, col ${col}`);
+    // Clear the redo stack whenever a new action is done
+    redoCropsStack.length = 0;
+}
     //Continuous movemeent when F is pressed
     if (Phaser.Input.Keyboard.JustDown(fKey)) {
         continuousMode = !continuousMode;
@@ -628,45 +679,89 @@ function plantGarlic(row: number, col: number) {
         growthStage: tile.growthStage
     };
 
+    // Record the action in completedCrops and clear redo stack
+    completedCrops.push(`Garlic planted at row ${row}, col ${col}`);
+    redoCropsStack.length = 0; // Clear redo stack when a new action is performed
+
     actionManager.recordAction({
         type: 'PLANT',
         row,
         col,
         previousState
     });
-    tile.tile.setFillStyle(0xDDA0DD, 1); // Light purple for turnip
+
+    tile.tile.setFillStyle(0xDDA0DD, 1); // Light purple for garlic
     tile.plantType = 'GARLIC';
     tile.growthStage = 0;
-    //place the sprout before checking to see if it is a valid space
+
+    // Place the sprout before checking to see if it is a valid space
     if (tile.plantText) {
         tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
     }
+
     checkPlantGrowth(row, col);
 }
 
 function plantCucumber(row: number, col: number) {
     const tile = gridTiles[row][col];
+    const previousState = {
+        plantType: tile.plantType,
+        growthStage: tile.growthStage
+    };
+
+    // Record the action in completedCrops and clear redo stack
+    completedCrops.push(`Cucumber planted at row ${row}, col ${col}`);
+    redoCropsStack.length = 0; // Clear redo stack when a new action is performed
+
+    actionManager.recordAction({
+        type: 'PLANT',
+        row,
+        col,
+        previousState
+    });
+
     tile.tile.setFillStyle(0x228B22, 1); // Green for cucumber
     tile.plantType = 'CUCUMBER';
     tile.growthStage = 0;
-    //place the sprout before checking to see if it is a valid space
+
+    // Place the sprout before checking to see if it is a valid space
     if (tile.plantText) {
         tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
     }
+
     checkPlantGrowth(row, col);
 }
 
 function plantTomato(row: number, col: number) {
     const tile = gridTiles[row][col];
+    const previousState = {
+        plantType: tile.plantType,
+        growthStage: tile.growthStage
+    };
+
+    // Record the action in completedCrops and clear redo stack
+    completedCrops.push(`Tomato planted at row ${row}, col ${col}`);
+    redoCropsStack.length = 0; // Clear redo stack when a new action is performed
+
+    actionManager.recordAction({
+        type: 'PLANT',
+        row,
+        col,
+        previousState
+    });
+
     tile.tile.setFillStyle(0xFF4500, 1); // Dark orange/red for tomato
     tile.plantType = 'TOMATO';
     tile.growthStage = 0;
-    //place the sprout before checking to see if it is a valid space
+
+    // Place the sprout before checking to see if it is a valid space
     if (tile.plantText) {
         tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
     }
+
     checkPlantGrowth(row, col);
 }
+
 
 //helper function to determine how many neighbors a plant currently has
 function plantNeighbors(row: number, col: number): number {
