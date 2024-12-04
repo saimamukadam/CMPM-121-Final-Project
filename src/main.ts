@@ -755,8 +755,6 @@ function checkWinConditions(): boolean {
     );
 }
 
-//let winText: Phaser.GameObjects.Text | null = null;
-
 function updateWinCondition(this: Phaser.Scene) {
     if (checkWinConditions()) {
 
@@ -772,7 +770,7 @@ function updateWinCondition(this: Phaser.Scene) {
             }
         ).setOrigin(0.5).setDepth(0.2);
 
-        // Optional: Pause the game or trigger other victory effects
+        //Pauses the game, we can add other things after this like a reset etc
         this.scene.pause();
     }
 }
