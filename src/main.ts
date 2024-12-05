@@ -950,27 +950,25 @@ function undoLastAction() {
     const action = actionManager.undo();
     if (action) {
         const tile = gridTiles[action.row][action.col];
-        
-        
+
+        // Restore the previous state of the tile
         if (action.previousState) {
             tile.plantType = action.previousState.plantType;
             tile.growthStage = action.previousState.growthStage;
-            
-            
+
+            // Update tile visuals based on the restored state
             if (!tile.plantType) {
-                tile.tile.setFillStyle(0x000000, 0); 
+                tile.tile.setFillStyle(0x000000, 0); // Clear the tile
                 if (tile.plantText) tile.plantText.setText('');
             } else {
-                
                 if (tile.plantType === 'GARLIC') tile.tile.setFillStyle(0xDDA0DD, 1);
                 else if (tile.plantType === 'CUCUMBER') tile.tile.setFillStyle(0x228B22, 1);
                 else if (tile.plantType === 'TOMATO') tile.tile.setFillStyle(0xFF4500, 1);
-                
-                
+
                 if (tile.plantText) {
                     tile.plantText.setText(
-                        tile.plantType && tile.growthStage !== undefined 
-                            ? PLANT_STAGES[tile.plantType][tile.growthStage] 
+                        tile.plantType && tile.growthStage !== undefined
+                            ? PLANT_STAGES[tile.plantType][tile.growthStage]
                             : ''
                     );
                 }
