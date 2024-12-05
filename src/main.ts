@@ -981,12 +981,16 @@ function redoLastAction() {
     const action = actionManager.redo();
     if (action) {
         const tile = gridTiles[action.row][action.col];
-        
-        // Replant the crop
+
+        // Reapply the crop based on the action's details
         if (action.type === 'PLANT') {
-            if (tile.plantType === 'GARLIC') plantGarlic(action.row, action.col);
-            else if (tile.plantType === 'CUCUMBER') plantCucumber(action.row, action.col);
-            else if (tile.plantType === 'TOMATO') plantTomato(action.row, action.col);
+            if (action.previousState && action.previousState.plantType === 'GARLIC') {
+                plantGarlic(action.row, action.col);
+            } else if (action.previousState && action.previousState.plantType === 'CUCUMBER') {
+                plantCucumber(action.row, action.col);
+            } else if (action.previousState && action.previousState.plantType === 'TOMATO') {
+                plantTomato(action.row, action.col);
+            }
         }
     }
 }
