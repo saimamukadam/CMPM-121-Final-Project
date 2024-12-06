@@ -103,32 +103,73 @@ function createInstructionsPanel() {
   createInstructionsPanel();
   
 
+//Grid dimentions, use these when accessing the grid
+const GRID_SIZE = 32;
+const GAME_WIDTH = config.width as number;
+const GAME_HEIGHT = config.height as number;
+const GRID_COLS = Math.floor(GAME_WIDTH / GRID_SIZE);
+const GRID_ROWS = Math.floor(GAME_HEIGHT / GRID_SIZE);
 
-
-export interface GameState {
+interface GameState {
+    gridTiles: {
+        sun: number;
+        water: number;
+        plantType?: PlantType;
+        growthStage?: number;
+    }[][];
+    playerPosition: {
+        x: number;
+        y: number;
+    };
+    continuousMode: boolean;
     playerHealth: number;
     playerScore: number;
 }
 
 class AutoSaveManager {
-    private static autoSaveKey = "autoSave";
-
-    // Auto-save 
-    static autoSave(gameState: GameState): void {
-        localStorage.setItem(AutoSaveManager.autoSaveKey, JSON.stringify(gameState)); 
+    private static autoSaveKey = "farmgame_autosave";
+    private static autoSaveInterval = 5000; // 5 seconds
+    private static intervalId: number | null = null;
+    
+    // Start auto save 
+    static startAutoSave(gameManager: GameManager): void {
+        if (this.intervalId === null) {
+            this.intervalId = globalThis.setInterval(() => {
+                gameManager.autoSave();
+            }, this.autoSaveInterval);
+        }
     }
 
-    // Load auto-saved game 
-    static loadAutoSave(): GameState | null {
-        const savedState = localStorage.getItem(AutoSaveManager.autoSaveKey);
+    // End auto save
+    static stopAutoSave(): void {
+        if (this.intervalId !== null) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+    }
+
+    // Auto save
+    static saveState(gameState: GameState): void {
+        try {
+            localStorage.setItem(this.autoSaveKey, JSON.stringify(gameState));
+            console.log("Auto-save successful");
+        } catch (error) {
+            console.error("Auto-save failed:", error);
+        }
+    }
+
+    // Load save sate
+    static loadState(): GameState | null {
+        const savedState = localStorage.getItem(this.autoSaveKey);
         return savedState ? JSON.parse(savedState) : null;
     }
 
     // Clear auto-save when the player manually saves or quits
-    static clearAutoSave(): void {
+    static clearState(): void {
         localStorage.removeItem(AutoSaveManager.autoSaveKey);
     }
 }
+
 class ActionManager {
     private actionHistory: GameAction[] = [];
     private undoneActions: GameAction[] = [];
@@ -167,79 +208,164 @@ class ActionManager {
 
 class GameManager {
     private gameState: GameState;
+    private scene: Phaser.Scene | null = null;
+    private pendingSavedState: GameState | null = null;
 
     constructor() {
-        this.gameState = {
-            playerHealth: 100,
-            playerScore: 0,
-        };
+        this.gameState = this.createDefaultState();
 
-        // Call auto-save every 5 seconds 
-        setInterval(() => this.autoSave(), 5000);
+        const savedState = AutoSaveManager.loadState();
+        if (savedState) {
+            console.log("Found saved state, queuing for when scene is ready");
+            this.pendingSavedState = savedState;
+        }
+    }
+
+    // This function now handles load state
+    setScene(scene: Phaser.Scene) {
+        this.scene = scene;
+        AutoSaveManager.startAutoSave(this);
+        
+        // If we had a pending saved state, handle it now
+        if (this.pendingSavedState) {
+            console.log("Scene ready, handling pending saved state");
+            const shouldContinue = globalThis.confirm("A saved game was found. Would you like to continue?");
+            if (shouldContinue) {
+                this.resumeGame(this.pendingSavedState);
+            } else {
+                this.startNewGame();
+            }
+            this.pendingSavedState = null;  // Clear pending state
+        }
+    }
+
+    private createDefaultState(): GameState {
+        return {
+            gridTiles: Array(GRID_ROWS).fill(null).map(() => 
+                Array(GRID_COLS).fill(null).map(() => ({
+                    sun: 0,
+                    water: 0
+                }))
+            ),
+            playerPosition: { x: GRID_SIZE-16, y: GRID_SIZE-16 },
+            continuousMode: false,
+            playerHealth: 100,
+            playerScore: 0
+        };
     }
 
     // Auto-save the game 
-    private autoSave(): void {
-        AutoSaveManager.autoSave(this.gameState);
-    }
-
-    // Load auto-save 
-    loadAutoSave(): void {
-        const autoSavedState = AutoSaveManager.loadAutoSave();
-        if (autoSavedState) {
-            this.gameState = autoSavedState;
-            this.askToContinue();
-        } else {
-            this.startNewGame();
+    autoSave(): void {
+        if (!this.scene) {
+            console.log("Scene not initialized, skipping auto-save");
+            return;
         }
-    }
 
-    // Ask the player if they want to continue from the auto-save
-    private askToContinue(): void {
-        const resume = confirm("Do you want to continue from where you left off?");
-        if (resume) {
-            this.resumeGame();
-        } else {
-            this.startNewGame();
-        }
+        const state: GameState = {
+            gridTiles: gridTiles.map(row => 
+                row.map(tile => ({
+                    sun: tile.sun,
+                    water: tile.water,
+                    plantType: tile.plantType,
+                    growthStage: tile.growthStage
+                }))
+            ),
+            playerPosition: {
+                x: player.x,
+                y: player.y
+            },
+            continuousMode: continuousMode,
+            playerHealth: this.gameState.playerHealth,
+            playerScore: this.gameState.playerScore
+        };
+        
+        console.log("Attempting to save state:", state); // Debug log
+        AutoSaveManager.saveState(state);
+        this.gameState = state;
     }
 
     // Resume the game from the auto-save state
-    private resumeGame(): void {
-        console.log("Resuming game...");
+    public resumeGame(savedState: GameState): void {
+        // Restore grid state
+        savedState.gridTiles.forEach((row, rowIndex) => {
+            row.forEach((tileData, colIndex) => {
+                const tile = gridTiles[rowIndex][colIndex];
+                tile.sun = tileData.sun;
+                tile.water = tileData.water;
+                tile.plantType = tileData.plantType;
+                tile.growthStage = tileData.growthStage;
+
+                // Update visuals
+                if (tile.plantType && tile.growthStage !== undefined) {
+                    tile.plantText?.setText(PLANT_STAGES[tile.plantType][tile.growthStage]);
+                    
+                    // Update tile color
+                    switch (tile.plantType) {
+                        case 'GARLIC':
+                            tile.tile.setFillStyle(0xDDA0DD, 1);
+                            break;
+                        case 'CUCUMBER':
+                            tile.tile.setFillStyle(0x228B22, 1);
+                            break;
+                        case 'TOMATO':
+                            tile.tile.setFillStyle(0xFF4500, 1);
+                            break;
+                    }
+                }
+            });
+        });
+
+        // Restore player position
+        player.x = savedState.playerPosition.x;
+        player.y = savedState.playerPosition.y;
+        targetX = player.x;
+        targetY = player.y;
         
+        // Restore game mode
+        continuousMode = savedState.continuousMode;
         
-        AutoSaveManager.clearAutoSave();
+        // Restore other state
+        this.gameState = savedState;
+        
+        console.log("Game restored from auto-save");
     }
 
     // Start a new game
     private startNewGame(): void {
-        console.log("Starting a new game...");
-        // Reset the game state
-        this.gameState = {
-            playerHealth: 100,
-            playerScore: 0,
-            // Reset other game variables
-        };
-    }
+        this.gameState = this.createDefaultState();
+        AutoSaveManager.clearState();
+        
+        // Reset player position
+        player.x = GRID_SIZE-16;
+        player.y = GRID_SIZE-16;
+        targetX = player.x;
+        targetY = player.y;
+        
+        // Reset grid
+        gridTiles.forEach(row => {
+            row.forEach(tile => {
+                tile.sun = 0;
+                tile.water = 0;
+                tile.plantType = undefined;
+                tile.growthStage = undefined;
+                tile.tile.setFillStyle(0x000000, 0);
+                tile.plantText?.setText('');
+            });
+        });
 
-    // Example of how to manually save the game
-    saveGame(): void {
-        AutoSaveManager.clearAutoSave(); // Clear any previous auto-save
-        AutoSaveManager.autoSave(this.gameState); // Save the game state manually
-        console.log("Game saved!");
+        console.log("New game started");
     }
 
     // Example of how to quit the game and clear the auto-save
     quitGame(): void {
-        AutoSaveManager.clearAutoSave();
+        AutoSaveManager.stopAutoSave();
+        AutoSaveManager.clearState();
         console.log("Game quit and auto-save cleared.");
     }
 }
 
 const gameManager = new GameManager();
-gameManager.loadAutoSave();
-
+//gameManager.loadAutoSave();
 
 interface GameSaveData {
     gridTiles: {
@@ -282,7 +408,6 @@ let fKey!: Phaser.Input.Keyboard.Key;
 let zKey!: Phaser.Input.Keyboard.Key;
 let xKey!: Phaser.Input.Keyboard.Key;
 let cKey!: Phaser.Input.Keyboard.Key;
-const GRID_SIZE = 32;
 const MOVE_SPEED = 200;
 //const CONTINUOUS_MOVE_SPEED = 400;
 let isMoving = false;
@@ -317,12 +442,6 @@ const gridTiles: { // changed "let" to "const" to remove error
     growthStage?: number;
     plantText?: Phaser.GameObjects.Text;
 }[][] = []; 
-
-//Grid dimentions, use these when accessing the grid
-const GAME_WIDTH = config.width as number;
-const GAME_HEIGHT = config.height as number;
-const GRID_COLS = Math.floor(GAME_WIDTH / GRID_SIZE);
-const GRID_ROWS = Math.floor(GAME_HEIGHT / GRID_SIZE);
 
 const textConfig = {
     sun: { fontSize: '12px', color: '#FFD700' },  // Gold color for sun
@@ -444,6 +563,7 @@ function create(this: Phaser.Scene) {
     undoKey.on('down', () => undoLastAction());
     redoKey.on('down', () => redoLastAction());
 
+    gameManager.setScene(this);
 }
 
 function nearestBox(playerX: number, playerY: number): { row: number; col: number } {
@@ -850,6 +970,7 @@ function updateWinCondition(this: Phaser.Scene) {
         ).setOrigin(0.5).setDepth(0.2);
 
         //Pauses the game, we can add other things after this like a reset etc
+        gameManager.quitGame();
         this.scene.pause();
     }
 }
@@ -872,6 +993,7 @@ function saveGame(slotNumber: number): boolean {
             continuousMode: continuousMode
         };
 
+        gameManager.quitGame();
         localStorage.setItem(`farmgame_save_${slotNumber}`, JSON.stringify(gameState));
         return true;
     } catch (error) {
