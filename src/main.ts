@@ -34,30 +34,12 @@ canvasContainer.innerHTML = `
   
 `;
 
-const undoButton = document.querySelector<HTMLButtonElement>("#undoButton")!;
-const redoButton = document.querySelector<HTMLButtonElement>("#redoButton")!;
+
 
 const completedCrops: string[] = []; // This could be your crop data
 const redoCropsStack: string[] = []; // Stack for redo
 
-undoButton.addEventListener("click", () => {
-    if (completedCrops.length > 0) {
-      const lastAction = completedCrops.pop()!;
-      redoCropsStack.push(lastAction);
-      console.log("Undone:", lastAction); 
-    }
-  });
-  
-  
-  // Redo button functionality
-  redoButton.addEventListener("click", () => {
-    if (redoCropsStack.length > 0) {
-      const redoAction = redoCropsStack.pop()!;
-      completedCrops.push(redoAction);
-      console.log("Redone:", redoAction); 
-    }
-  });
-  
+
 
 // create the instructions panel
 function createInstructionsPanel() {
@@ -79,7 +61,9 @@ function createInstructionsPanel() {
       6 | 7 | 8 | 9 | 0<br><br>
       <strong>Movement:</strong><br>
       ↑ ↓ ← → : Grid Movement<br>
-      F : Toggle Continuous<br><br>
+      F : Toggle Continuous<br>
+      U : Undo<br>
+      R : Redo<br>
       <strong>Planting:</strong><br>
       Z : Garlic<br>
       X : Cucumber<br>
