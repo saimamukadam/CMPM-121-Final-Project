@@ -170,17 +170,29 @@ class AutoSaveManager {
     }
 }
 
+interface GameAction {
+    type: 'PLANT';
+    row: number;
+    col: number;
+    plantedType: PlantType;
+    previousState?: {
+        plantType?: PlantType;
+        growthStage?: number;
+    };
+    currentState?: {
+        plantType: PlantType,
+        growthStage: number,
+    };
+}
+
 class ActionManager {
     private actionHistory: GameAction[] = [];
     private undoneActions: GameAction[] = [];
     private readonly MAX_HISTORY = 10;
 
     recordAction(action: GameAction) {
-        if (this.actionHistory.length >= this.MAX_HISTORY) {
-            this.actionHistory.shift();
-        }
+        //this.undoneActions = [];
         this.actionHistory.push(action);
-        this.undoneActions = [];
     }
 
     undo(): GameAction | null {
@@ -376,15 +388,6 @@ interface GameSaveData {
     }[][];
     playerPosition: { x: number; y: number };
     continuousMode: boolean;
-}
-interface GameAction {
-    type: 'PLANT';
-    row: number;
-    col: number;
-    previousState?: {
-        plantType?: PlantType;
-        growthStage?: number;
-    };
 }
 
 interface WinCondition {
@@ -783,17 +786,6 @@ function plantGarlic(row: number, col: number) {
         growthStage: tile.growthStage
     };
 
-    // Record the action in completedCrops and clear redo stack
-    completedCrops.push(`Garlic planted at row ${row}, col ${col}`);
-    redoCropsStack.length = 0; // Clear redo stack when a new action is performed
-
-    actionManager.recordAction({
-        type: 'PLANT',
-        row,
-        col,
-        previousState
-    });
-
     tile.tile.setFillStyle(0xDDA0DD, 1); // Light purple for garlic
     tile.plantType = 'GARLIC';
     tile.growthStage = 0;
@@ -802,6 +794,22 @@ function plantGarlic(row: number, col: number) {
     if (tile.plantText) {
         tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
     }
+
+    // Record the action in completedCrops and clear redo stack
+    //completedCrops.push(`Garlic planted at row ${row}, col ${col}`);
+    //redoCropsStack.length = 0; // Clear redo stack when a new action is performed
+
+    actionManager.recordAction({
+        type: 'PLANT',
+        row,
+        col,
+        plantedType: 'GARLIC',
+        previousState,
+        currentState: {
+            plantType: 'GARLIC',
+            growthStage: tile.growthStage
+        }
+    });
 
     checkPlantGrowth(row, col);
 }
@@ -813,17 +821,6 @@ function plantCucumber(row: number, col: number) {
         growthStage: tile.growthStage
     };
 
-    // Record the action in completedCrops and clear redo stack
-    completedCrops.push(`Cucumber planted at row ${row}, col ${col}`);
-    redoCropsStack.length = 0; // Clear redo stack when a new action is performed
-
-    actionManager.recordAction({
-        type: 'PLANT',
-        row,
-        col,
-        previousState
-    });
-
     tile.tile.setFillStyle(0x228B22, 1); // Green for cucumber
     tile.plantType = 'CUCUMBER';
     tile.growthStage = 0;
@@ -832,6 +829,21 @@ function plantCucumber(row: number, col: number) {
     if (tile.plantText) {
         tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
     }
+    // Record the action in completedCrops and clear redo stack
+    //completedCrops.push(`Cucumber planted at row ${row}, col ${col}`);
+    //redoCropsStack.length = 0; // Clear redo stack when a new action is performed
+
+    actionManager.recordAction({
+        type: 'PLANT',
+        row,
+        col,
+        plantedType: 'CUCUMBER',
+        previousState,
+        currentState: {
+            plantType: 'CUCUMBER',
+            growthStage: tile.growthStage
+        }
+    });
 
     checkPlantGrowth(row, col);
 }
@@ -843,17 +855,6 @@ function plantTomato(row: number, col: number) {
         growthStage: tile.growthStage
     };
 
-    // Record the action in completedCrops and clear redo stack
-    completedCrops.push(`Tomato planted at row ${row}, col ${col}`);
-    redoCropsStack.length = 0; // Clear redo stack when a new action is performed
-
-    actionManager.recordAction({
-        type: 'PLANT',
-        row,
-        col,
-        previousState
-    });
-
     tile.tile.setFillStyle(0xFF4500, 1); // Dark orange/red for tomato
     tile.plantType = 'TOMATO';
     tile.growthStage = 0;
@@ -862,6 +863,22 @@ function plantTomato(row: number, col: number) {
     if (tile.plantText) {
         tile.plantText.setText(PLANT_STAGES[tile.plantType][0]);
     }
+
+    // Record the action in completedCrops and clear redo stack
+    //completedCrops.push(`Tomato planted at row ${row}, col ${col}`);
+    //redoCropsStack.length = 0; // Clear redo stack when a new action is performed
+
+    actionManager.recordAction({
+        type: 'PLANT',
+        row,
+        col,
+        plantedType: 'TOMATO',
+        previousState,
+        currentState: {
+            plantType: 'TOMATO',
+            growthStage: tile.growthStage
+        }
+    });
 
     checkPlantGrowth(row, col);
 }
@@ -1085,18 +1102,28 @@ function undoLastAction() {
 
 function redoLastAction() {
     const action = actionManager.redo();
-    if (action) {
+    if (action && action.currentState) {
         const tile = gridTiles[action.row][action.col];
-
-        // Reapply the crop based on the action's details
-        if (action.type === 'PLANT') {
-            if (action.previousState && action.previousState.plantType === 'GARLIC') {
-                plantGarlic(action.row, action.col);
-            } else if (action.previousState && action.previousState.plantType === 'CUCUMBER') {
-                plantCucumber(action.row, action.col);
-            } else if (action.previousState && action.previousState.plantType === 'TOMATO') {
-                plantTomato(action.row, action.col);
-            }
+        
+        // Restore the exact state
+        tile.plantType = action.currentState.plantType;
+        tile.growthStage = action.currentState.growthStage;
+        
+        // Update visuals
+        switch (action.plantedType) {
+            case 'GARLIC':
+                tile.tile.setFillStyle(0xDDA0DD, 1);
+                break;
+            case 'CUCUMBER':
+                tile.tile.setFillStyle(0x228B22, 1);
+                break;
+            case 'TOMATO':
+                tile.tile.setFillStyle(0xFF4500, 1);
+                break;
+        }
+        
+        if (tile.plantText) {
+            tile.plantText.setText(PLANT_STAGES[tile.plantType][tile.growthStage]);
         }
     }
 }
