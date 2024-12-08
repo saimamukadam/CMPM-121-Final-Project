@@ -97,11 +97,29 @@ function createInstructionsPanel() {
     instructionsText.style.padding = '10px';
     instructionsText.style.textAlign = 'center';
     instructionsText.style.marginTop = '10px';
-  }
+}
   
-  // Call instructions panel
-  createInstructionsPanel();
-  
+// Call instructions panel
+createInstructionsPanel();
+
+function displayTurnCounter(this: Phaser.Scene) {
+    const turnText = this.add.text(
+        10, 
+        10, 
+        `Turn: ${currentTurn}`, 
+        { 
+            fontSize: '16px', 
+            color: '#000000' 
+        }
+    );
+    turnText.setScrollFactor(0);  // Makes text stay on screen
+    turnText.setDepth(1);         // Ensures text is visible above other elements
+    
+    // Update the turn display each frame
+    this.events.on('update', () => {
+        turnText.setText(`Turn: ${currentTurn}`);
+    });
+}
 
 //Grid dimentions, use these when accessing the grid
 const GRID_SIZE = 32;
@@ -396,6 +414,21 @@ interface WinCondition {
     requiredCount: number;
 }
 
+interface ScenarioCondition {
+    turnStart: number;
+    turnEnd?: number;
+    sunMultiplier: number;
+    waterMultiplier: number;
+    description: string;
+}
+
+interface GameScenario {
+    name: string;
+    description: string;
+    conditions: ScenarioCondition[];
+    victoryConditions: WinCondition[];
+}
+
 const WIN_CONDITIONS: WinCondition[] = [
     { plantType: 'GARLIC', requiredGrowthStage: 2, requiredCount: 5 },
     { plantType: 'CUCUMBER', requiredGrowthStage: 2, requiredCount: 5 },
@@ -419,6 +452,8 @@ let targetY = 0;
 let keyPressed = false;
 let continuousMode = false;
 let hasMovedThisTurn = false;
+let currentTurn = 0;
+let currentScenario: GameScenario;
 
 //Values at which the plants can grow
 const GROWTH_THRESHOLDS = {
@@ -566,6 +601,10 @@ function create(this: Phaser.Scene) {
     undoKey.on('down', () => undoLastAction());
     redoKey.on('down', () => redoLastAction());
 
+    displayTurnCounter.call(this);
+    currentScenario = defaultScenario;
+    currentTurn = 0;
+
     gameManager.setScene(this);
 }
 
@@ -666,18 +705,22 @@ if (Phaser.Input.Keyboard.JustDown(cKey)) {
         if (cursors.left.isDown && player.x > GRID_SIZE-16) {
             player.x -= MOVE_SPEED * (this.game.loop.delta / 1000);
             hasMovedThisTurn = true;
+            incrementTurn();
         }
         if (cursors.right.isDown && player.x < GAME_WIDTH - GRID_SIZE+16) {
             player.x += MOVE_SPEED * (this.game.loop.delta / 1000);
             hasMovedThisTurn = true;
+            incrementTurn();
         }
         if (cursors.up.isDown && player.y > GRID_SIZE-16) {
             player.y -= MOVE_SPEED * (this.game.loop.delta / 1000);
             hasMovedThisTurn = true;
+            incrementTurn();
         }
         if (cursors.down.isDown && player.y < GAME_HEIGHT - GRID_SIZE+16) {
             player.y += MOVE_SPEED * (this.game.loop.delta / 1000);
             hasMovedThisTurn = true;
+            incrementTurn();
         }
     } else {
         //Checking to see if any keys are currently being pressed
@@ -698,24 +741,28 @@ if (Phaser.Input.Keyboard.JustDown(cKey)) {
                 isMoving = true;
                 keyPressed = true;
                 hasMovedThisTurn = true;
+                incrementTurn();
             }
             else if (cursors.right.isDown && targetX < GAME_WIDTH - GRID_SIZE) {
                 targetX += GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
                 hasMovedThisTurn = true;
+                incrementTurn();
             }
             else if (cursors.up.isDown && targetY > GRID_SIZE) {
                 targetY -= GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
                 hasMovedThisTurn = true;
+                incrementTurn();
             }
             else if (cursors.down.isDown && targetY < GAME_HEIGHT - GRID_SIZE) {
                 targetY += GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
                 hasMovedThisTurn = true;
+                incrementTurn();
             }
         }
 
@@ -757,11 +804,13 @@ if (Phaser.Input.Keyboard.JustDown(cKey)) {
 // function to generate sun and water levels for each grid tile
 // call this function each turn ??
 function generateSunWaterLevels() {
+    const condition = getCurrentScenarioCondition();
+    const sunMultiplier = condition?.sunMultiplier || 1;
+
     for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
             const tile = gridTiles[row][col];
-            tile.sun = Phaser.Math.Between(0, 100); // rando val btwn 0-100
-            //tile.water = Phaser.Math.Between(0, 50); // rando val btwn 0-50 but can accumulate
+            tile.sun = Math.min(100, Math.floor(Phaser.Math.Between(0, 100) * sunMultiplier));
         }
     }
 }
@@ -769,14 +818,18 @@ function generateSunWaterLevels() {
 // accumulate water (over multiple turns)
 // modify tile.water values over time
 function accumulateWater() {
+    const condition = getCurrentScenarioCondition();
+    const waterMultiplier = condition?.waterMultiplier || 1;
+
     for (let row = 0; row < GRID_ROWS; row++) {
         for (let col = 0; col < GRID_COLS; col++) {
             const tile = gridTiles[row][col];
-            // add random water btwn 0-10 but cap at max 100
-            tile.water = Math.min(tile.water + Phaser.Math.Between(0,5), 100);
+            const waterIncrease = Math.floor(Phaser.Math.Between(0, 5) * waterMultiplier);
+            tile.water = Math.min(tile.water + waterIncrease, 100);
         }
     }
 }
+
 const actionManager = new ActionManager();
 
 function plantGarlic(row: number, col: number) {
@@ -1126,4 +1179,55 @@ function redoLastAction() {
             tile.plantText.setText(PLANT_STAGES[tile.plantType][tile.growthStage]);
         }
     }
+}
+
+// Determines what goes on in the game
+const defaultScenario: GameScenario = {
+    name: "Basic Farming",
+    description: "A standard farming scenario with occasional harsh sunlight",
+    conditions: [
+        {
+            turnStart: 0,
+            turnEnd: 20,
+            sunMultiplier: 1,
+            waterMultiplier: 1,
+            description: "Normal weather conditions"
+        },
+        {
+            turnStart: 21,
+            turnEnd: 40,
+            sunMultiplier: 20,
+            waterMultiplier: -0.5,
+            description: "Harsh sunlight period"
+        },
+        {
+            turnStart: 41,
+            sunMultiplier: 1,
+            waterMultiplier: 1,
+            description: "Return to normal conditions"
+        }
+    ],
+    victoryConditions: [
+        { plantType: 'GARLIC', requiredGrowthStage: 2, requiredCount: 5 },
+        { plantType: 'CUCUMBER', requiredGrowthStage: 2, requiredCount: 5 },
+        { plantType: 'TOMATO', requiredGrowthStage: 2, requiredCount: 5 }
+    ]
+};
+
+function incrementTurn() {
+    currentTurn++;
+    const currentCondition = getCurrentScenarioCondition();
+    if (currentCondition) {
+        console.log(`Turn ${currentTurn}: ${currentCondition.description}`);
+    }
+}
+
+// Add this function to get current scenario conditions
+function getCurrentScenarioCondition(): ScenarioCondition | null {
+    if (!currentScenario) return null;
+    
+    return currentScenario.conditions.find(condition => 
+        currentTurn >= condition.turnStart && 
+        (!condition.turnEnd || currentTurn <= condition.turnEnd)
+    ) || null;
 }
