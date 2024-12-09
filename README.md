@@ -43,8 +43,7 @@ We had already started thinking about our UI since the beginning of the project,
 ## How we satisfied the software requirements:
 ### F1.a
 For this part, our goal was to implement our game's grid to be backed by a single contiguous byte array in either AoS or SoA format. We chose SoA (Structure-of-Arrays) format for this. 
-Structure-of-Arrays memory allocation strategy Diagram :
-    [insert image here]
+    ![Structure-of-Arrays memory allocation strategy Diagram: ](./diagram.png)
 ### F1.b
 For this part, our goal was that the player can manually save their progress in the game. They needed to be able to load the state and continue to play another day even after quitting the game application for example. The player must also be able to manage multiple save files/slots. To accomplish this we added save state logic to our game manager class. Allowing the player to save and load their progress is an important aspect of a game like this where the turns are based off the player and they can make as much progress as they would like in however much time they want. 
 ### F1.c
