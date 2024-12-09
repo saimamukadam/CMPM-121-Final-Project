@@ -333,6 +333,19 @@ button:focus-visible {
   order: 3;
 }
 
+.instructions-toggle-btn {
+  position: relative;
+  padding: 8px 32px;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  order: 4;
+}
+
+.instructions-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
 /* Light Theme */
 @media (prefers-color-scheme: light) {
   :root {
