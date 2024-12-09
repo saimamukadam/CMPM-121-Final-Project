@@ -1,7 +1,6 @@
 import "./style.css";
 import "phaser";
 
-
 const APP_TITLE = "Game";
 
 const canvasContainer = document.querySelector<HTMLDivElement>("#app")!;
@@ -66,17 +65,10 @@ canvasContainer.innerHTML = `
   
 `;
 
-
-
 const completedCrops: string[] = []; // This could be your crop data
 const redoCropsStack: string[] = []; // Stack for redo
 
-
-
 // create the instructions panel
-
-
-
   
 // Call instructions panel
 
@@ -413,8 +405,6 @@ let continuousMode = false;
 let hasMovedThisTurn = false;
 let currentTurn = 0;
 let currentScenario: GameScenario;
-
-
 
 const PLANT_STAGES = {
     GARLIC: ['🌱', '🥬', '🧄'],  // sprout, growing, garlic
@@ -890,7 +880,6 @@ function plantTomato(row: number, col: number) {
     checkPlantGrowth(row, col);
 }
 
-
 //helper function to determine how many neighbors a plant currently has
 function plantNeighbors(row: number, col: number): number {
     let neighbors = 0;
@@ -1223,20 +1212,11 @@ function getCurrentScenarioCondition(): ScenarioCondition | null {
     ) || null;
 }
 
-
-
-
-
-  
-
   function changeLanguage(newLanguage: string) {
     currentLanguage = newLanguage;
     // Re-render any text that needs to be translated
     updateUIWithTranslations();
 }
-
-
-
 
 let translations: { [key: string]: any } = {
     en: {
@@ -1354,7 +1334,6 @@ function createInstructionsPanel() {
     `;
     instructionsPanel.appendChild(instructionsText);
   
-    
     document.body.appendChild(instructionsPanel);
   
     instructionsPanel.style.position = 'absolute';
@@ -1382,8 +1361,6 @@ function createInstructionsPanel() {
     instructionsText.style.marginTop = '10px';
 }
 
-
-
 function onTranslationsLoaded() {
     document.title = translations[currentLanguage].APP_TITLE;
 
@@ -1391,7 +1368,5 @@ function onTranslationsLoaded() {
 }
 
 createLanguageDropdown(); // Create the language selection dropdown
-
+    
 createInstructionsPanel();
-
-
