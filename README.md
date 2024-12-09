@@ -43,8 +43,7 @@ We had already started thinking about our UI since the beginning of the project,
 ## How we satisfied the software requirements:
 ### F1.a
 For this part, our goal was to implement our game's grid to be backed by a single contiguous byte array in either AoS or SoA format. We chose SoA (Structure-of-Arrays) format for this. 
-Structure-of-Arrays memory allocation strategy Diagram :
-    [insert image here]
+    ![Structure-of-Arrays memory allocation strategy Diagram: ](./diagram.png)
 ### F1.b
 For this part, our goal was that the player can manually save their progress in the game. They needed to be able to load the state and continue to play another day even after quitting the game application for example. The player must also be able to manage multiple save files/slots. To accomplish this we added save state logic to our game manager class. Allowing the player to save and load their progress is an important aspect of a game like this where the turns are based off the player and they can make as much progress as they would like in however much time they want. 
 ### F1.c
@@ -59,13 +58,13 @@ Looking back on the F1 software requirements, our team's plan hasn't changed muc
 
 ## How we satisfied the software requirements:
 ### F0 + F1
-
+Our previous F0 and F1 requirements remain satisfied in the latest version of our software as we still have our basic gameplay mechanics, symbols/UI, gameplay progression, etc... No major changes were made.
 ### External DSL for Scenario Design
-
+Our DSL is based on . [add more]
 ### Internal DSL for Plants and Growth Conditions
-
+[add more]
 ### Switch to Alternate Platform
-For our switch to an alternate language/platform, we decided to switch from Typescript to Javascript. 
+For our switch to an alternate language/platform, we decided to switch from Typescript to Javascript. We chose to do this as we surmised that it would be the easiest/least complicated switch and wouldn't completely break what we currently have. However, switching to Javascript proved to be more difficult than we expected as we gained many errors we had to resolve in doing so. After some debugging it worked, and we assume it would've been harder still if we had chosen a different alternate platform.
 
 ## Reflection
 Looking back on how we achieved the new F2 requirements, our team's plan hasn't changed much from when we completed F1 regarding our team roles. We did not reconsider any of the choices we previously described or Tools and Materials or our Roles as we kept them flexible since we completed F0. However, we had to decide on a new platform our language to emulate our project into. We decided to reimplement our project in Javascript which gave us complications that we are still working towards fixing. We learned through F2, that we need to remain even more flexible as we try new things and see what works and what doesn't, and that sometimes its better to come back to something later if you can't fix it right away. 
