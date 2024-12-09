@@ -1246,7 +1246,7 @@ let translations: { [key: string]: any } = {
         movement: "Movement",
         congratulations: "Congratulations!",
         victoryMessage: "You have successfully completed all challenges!",
-        victoryText: "All crops are grown!"
+        victoryText: "All crops are grown!",
     },
     es: {
         APP_TITLE: "Juego",
@@ -1257,16 +1257,26 @@ let translations: { [key: string]: any } = {
         victoryMessage: "¡Has completado todos los desafíos con éxito!",
         victoryText: "¡Todas las cosechas han crecido!"
     },
-    fr: {
-        APP_TITLE: "Jeu",
-        saveGame: "Sauvegarder le jeu",
-        loadGame: "Charger le jeu",
-        movement: "Mouvement",
-        congratulations: "Félicitations!",
-        victoryMessage: "Vous avez réussi à compléter tous les défis!",
-        victoryText: "Toutes les cultures ont grandi!"
+    ar: {
+        APP_TITLE: "لعبة",
+        saveGame: "حفظ اللعبة",
+        loadGame: "تحميل اللعبة",
+        movement: "حركة",
+        congratulations: "تهانينا!",
+        victoryMessage: "لقد نجحت في إكمال جميع التحديات!",
+        victoryText: "كل المحاصيل قد نمت!",
+        externalLink: "لمزيد من المعلومات عن اللغة العربية، انقر هنا: [موقع](https://example.com)"
+    },
+    ja: {
+        APP_TITLE: "ゲーム",
+        saveGame: "ゲームを保存",
+        loadGame: "ゲームをロード",
+        movement: "動き",
+        congratulations: "おめでとうございます!",
+        victoryMessage: "すべての課題を成功裏に完了しました!",
+        victoryText: "すべての作物が成長しました!",
+        externalLink: "詳細については、こちらをクリック: [サイト](https://example.com)"
     }
-    // Add other languages here
 };
 
 let currentLanguage = 'en';
@@ -1274,6 +1284,13 @@ let currentLanguage = 'en';
 document.title = translations[currentLanguage].APP_TITLE;
 
 function createLanguageDropdown() {
+    const dropdownContainer = document.getElementById('language-container');
+
+    if (!dropdownContainer) {
+        console.error("Language container does not exist.");
+        return; // Exit the function if the container doesn't exist
+    }
+
     const dropdown = document.createElement('select');
 
     // Create options for each language
@@ -1290,11 +1307,21 @@ function createLanguageDropdown() {
         updateUIWithTranslations(); // Refresh the UI
     });
 
-    document.body.appendChild(dropdown); // Append the dropdown to the body
-}
+    // Optional: Add some styling to the dropdown
+    dropdown.style.marginTop = "20px"; // Add space above the dropdown
 
+    dropdownContainer.appendChild(dropdown); // Append the dropdown to its container
+}
 function updateUIWithTranslations() {
-    document.title = translations[currentLanguage].APP_TITLE; // Update the document title
+    document.title = translations[currentLanguage].APP_TITLE; // Update document title
+    
+    // Set direction based on language
+    if (currentLanguage === 'ar') {
+        document.body.setAttribute('dir', 'rtl');
+    } else {
+        document.body.setAttribute('dir', 'ltr');
+    }
+
     createInstructionsPanel(); // Refresh the instructions panel with new translations
 }
 
