@@ -65,6 +65,7 @@ Here is an example to our basic External DSL ![External DSL for game scenarios e
 ### Internal DSL for Plants and Growth Conditions
 Internal DSL was written in TypeScript. We added several limiations on plant growth conditions. For example, Tomatos can only grow when surrounded by two other tomatos.
 Here is a snippet of the code for plant growth conditions ![Internal DSL for plant growth example: ](./Internal-DSL.png)
+
 In this code we see that tile.water and tile.sun are two of the more prevalent factors to plant growth. Sun is randomly decided between turns depending on game scenario. Whereas water either
 slowly or rapidly accumulates depending on user chosen scenario. We also employed a helper function that assists in determining how many of a similar crop is neighboring (hasAdjacentPlantType()).
 ### Switch to Alternate Platform
