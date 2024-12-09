@@ -7,36 +7,32 @@ const canvasContainer = document.querySelector<HTMLDivElement>("#app")!;
 
 // Edit this for different game scenarios
 const defaultScenario: GameScenario = {
-    name: "Basic Farming",
-    description: "A standard farming scenario with occasional harsh sunlight",
     conditions: [
         {
             turnStart: 0,
             turnEnd: 20,
             sunMultiplier: 1,
-            waterMultiplier: 1,
-            description: "Normal weather conditions"
+            waterMultiplier: 1
         },
         {
             turnStart: 21,
             turnEnd: 40,
             sunMultiplier: 20,
-            waterMultiplier: -0.5,
-            description: "Harsh sunlight period"
+            waterMultiplier: -0.5
         },
         {
             turnStart: 41,
             sunMultiplier: 1,
-            waterMultiplier: 1,
-            description: "Return to normal conditions"
+            waterMultiplier: 1
         }
     ],
     victoryConditions: [
-        { plantType: 'GARLIC', requiredGrowthStage: 2, requiredCount: 5 },
+        { plantType: 'GARLIC', requiredGrowthStage: 2, requiredCount: 7 },
         { plantType: 'CUCUMBER', requiredGrowthStage: 2, requiredCount: 5 },
         { plantType: 'TOMATO', requiredGrowthStage: 2, requiredCount: 5 }
     ]
 };
+
 
 //Game configuration, will probably be placing in another file in the future
 const config: Phaser.Types.Core.GameConfig = {
@@ -56,8 +52,14 @@ const config: Phaser.Types.Core.GameConfig = {
             gravity: { x: 0, y: 0 },
             debug: false
         }
+    },
+    input: {
+        keyboard: true,
+        touch: true
     }
 };
+
+const game = new Phaser.Game(config);
 
 canvasContainer.innerHTML = `
   <h1>${APP_TITLE}</h1>
@@ -373,12 +375,9 @@ interface ScenarioCondition {
     turnEnd?: number;
     sunMultiplier: number;
     waterMultiplier: number;
-    description: string;
 }
 
 interface GameScenario {
-    name: string;
-    description: string;
     conditions: ScenarioCondition[];
     victoryConditions: WinCondition[];
 }
@@ -556,9 +555,12 @@ function create(this: Phaser.Scene) {
     redoKey.on('down', () => redoLastAction());
 
     currentScenario = defaultScenario;
+    updateScenarioUI(currentScenario);
+    updateUIWithTranslations();
     currentTurn = 0;
 
     gameManager.setScene(this);
+    setupTouchControls();
 }
 
 function nearestBox(playerX: number, playerY: number): { row: number; col: number } {
@@ -1177,6 +1179,7 @@ function redoLastAction() {
         }
     }
 }
+
 function updateScenarioDisplay() {
     const conditions = document.querySelectorAll('.scenario-condition');
     conditions.forEach(condition => condition.classList.remove('active'));
@@ -1204,11 +1207,6 @@ function incrementTurn() {
     }
     
     updateScenarioDisplay();
-    
-    const currentCondition = getCurrentScenarioCondition();
-    if (currentCondition) {
-        console.log(`Turn ${currentTurn}: ${currentCondition.description}`);
-    }
 }
 
 // Add this function to get current scenario conditions
@@ -1221,7 +1219,44 @@ function getCurrentScenarioCondition(): ScenarioCondition | null {
     ) || null;
 }
 
-  function changeLanguage(newLanguage: string) {
+function updateScenarioUI(scenario: GameScenario) {
+    // Update scenario name and description
+    const nameElement = document.querySelector('.scenario-name');
+    const descriptionElement = document.querySelector('.scenario-description');
+
+    // Clear existing conditions
+    const conditionsContainer = document.querySelector('.scenario-panel');
+    if (conditionsContainer) {
+        // Remove old scenario conditions
+        const oldConditions = conditionsContainer.querySelectorAll('.scenario-condition');
+        oldConditions.forEach(condition => condition.remove());
+
+        // Add new scenario conditions
+        scenario.conditions.forEach(condition => {
+            const conditionElement = document.createElement('div');
+            conditionElement.className = 'scenario-condition';
+
+            const turnRange = condition.turnEnd 
+                ? `Turns ${condition.turnStart}-${condition.turnEnd}`
+                : `Turns ${condition.turnStart}+`;
+
+            conditionElement.innerHTML = `
+                <strong>${turnRange}:</strong><br>
+                Sun: x${condition.sunMultiplier} | Water: x${condition.waterMultiplier}
+            `;
+
+            // Insert before victory conditions
+            const victoryConditions = conditionsContainer.querySelector('.victory-conditions');
+            if (victoryConditions) {
+                conditionsContainer.insertBefore(conditionElement, victoryConditions);
+            } else {
+                conditionsContainer.appendChild(conditionElement);
+            }
+        });
+    }
+}
+
+function changeLanguage(newLanguage: string) {
     currentLanguage = newLanguage;
     // Re-render any text that needs to be translated
     updateUIWithTranslations();
@@ -1399,6 +1434,7 @@ function createLanguageDropdown() {
 
     dropdownContainer.appendChild(dropdown); // Append the dropdown to its container
 }
+
 function updateUIWithTranslations() {
     // Update document title
     document.title = translations[currentLanguage].APP_TITLE;
@@ -1408,7 +1444,7 @@ function updateUIWithTranslations() {
     document.querySelector('.scenario-name')!.textContent = translations[currentLanguage].SCENARIO_NAME;
     document.querySelector('.scenario-description')!.textContent = translations[currentLanguage].SCENARIO_DESCRIPTION;
     
-    // Update the victory requirements panel
+    // Update the victory requirements panel with both translations and correct numbers
     const victoryRequirements = document.querySelector('.victory-conditions');
     if (victoryRequirements) {
         const titleElement = victoryRequirements.querySelector('.victory-title');
@@ -1418,8 +1454,14 @@ function updateUIWithTranslations() {
 
         const requirementsList = victoryRequirements.querySelectorAll('.victory-requirement');
         requirementsList.forEach((req, index) => {
-            if (translations[currentLanguage].VICTORY_RULES[index]) {
-                req.textContent = translations[currentLanguage].VICTORY_RULES[index];
+            if (translations[currentLanguage].VICTORY_RULES[index] && currentScenario?.victoryConditions[index]) {
+                // Get the victory condition for this index
+                const condition = currentScenario.victoryConditions[index];
+                // Get the translation template
+                let translatedText = translations[currentLanguage].VICTORY_RULES[index];
+                // Replace the "5" in the translation with the actual required count
+                translatedText = translatedText.replace(/\d+/, condition.requiredCount.toString());
+                req.textContent = translatedText;
             }
         });
     }
@@ -1432,7 +1474,7 @@ function updateUIWithTranslations() {
 
     const turnDisplay = document.querySelector('.turn-counter');
     if (turnDisplay) {
-        turnDisplay.textContent = translations[currentLanguage].TURN_DISPLAY + "0"; // Placeholder for the actual turn count
+        turnDisplay.textContent = translations[currentLanguage].TURN_DISPLAY + currentTurn;
     }
 
     // Update plant requirements text
@@ -1449,8 +1491,13 @@ function updateUIWithTranslations() {
         warningElement.innerHTML = translations[currentLanguage].WARNING;
     }
 
+    // Update only the non-translatable parts of the scenario UI
+    if (currentScenario) {
+        updateScenarioUI(currentScenario);
+    }
+
     // Update instruction panel as needed
-    createInstructionsPanel(); // Refresh the instructions panel with new translations
+    createInstructionsPanel();
 }
 
 function createInstructionsPanel() {
@@ -1524,3 +1571,148 @@ function onTranslationsLoaded() {
 createLanguageDropdown(); // Create the language selection dropdown
     
 createInstructionsPanel();
+
+function setupTouchControls() {
+    const setupTouchButton = (buttonClass: string, keyCode: string) => {
+        const button = document.querySelector(buttonClass);
+        if (button) {
+            // Handle both touch and mouse events
+            ['touchstart', 'mousedown'].forEach(eventType => {
+                button.addEventListener(eventType, (e) => {
+                    e.preventDefault(); // Prevent default behavior
+                    simulateKeyPress(keyCode);
+                });
+            });
+
+            // Add visual feedback
+            button.addEventListener('touchstart', () => {
+                (button as HTMLElement).style.backgroundColor = 'rgba(255, 215, 0, 0.4)';
+            });
+
+            button.addEventListener('touchend', () => {
+                (button as HTMLElement).style.backgroundColor = '';
+            });
+
+            // Mouse feedback
+            button.addEventListener('mousedown', () => {
+                (button as HTMLElement).style.backgroundColor = 'rgba(255, 215, 0, 0.4)';
+            });
+
+            ['mouseup', 'mouseleave'].forEach(eventType => {
+                button.addEventListener(eventType, () => {
+                    (button as HTMLElement).style.backgroundColor = '';
+                });
+            });
+        }
+    };
+
+    // Setup all buttons
+    setupTouchButton('.up-btn', 'up');
+    setupTouchButton('.down-btn', 'down');
+    setupTouchButton('.left-btn', 'left');
+    setupTouchButton('.right-btn', 'right');
+    setupTouchButton('.garlic-btn', 'z');
+    setupTouchButton('.cucumber-btn', 'x');
+    setupTouchButton('.tomato-btn', 'c');
+    setupTouchButton('.undo-btn', 'u');
+    setupTouchButton('.redo-btn', 'r');
+}
+
+function simulateKeyPress(keyCode: string) {
+    const scene = game.scene.scenes[0]; // Get the active scene
+    if (!scene || !scene.input || !scene.input.keyboard) return;
+
+    // Map buttons to their corresponding actions
+    switch (keyCode.toLowerCase()) {
+        case 'up':
+            if (!continuousMode) {
+                if (!isMoving && targetY > GRID_OFFSET_Y + GRID_SIZE) {
+                    targetY -= GRID_SIZE;
+                    isMoving = true;
+                    hasMovedThisTurn = true;
+                    incrementTurn();
+                }
+            } else {
+                if (player.y > GRID_OFFSET_Y + GRID_SIZE/2) {
+                    player.y -= MOVE_SPEED * (game.loop.delta / 1000);
+                    hasMovedThisTurn = true;
+                    incrementTurn();
+                }
+            }
+            break;
+
+        case 'down':
+            if (!continuousMode) {
+                if (!isMoving && targetY < GRID_OFFSET_Y + GAME_HEIGHT - GRID_SIZE) {
+                    targetY += GRID_SIZE;
+                    isMoving = true;
+                    hasMovedThisTurn = true;
+                    incrementTurn();
+                }
+            } else {
+                if (player.y < GRID_OFFSET_Y + GAME_HEIGHT - GRID_SIZE/2) {
+                    player.y += MOVE_SPEED * (game.loop.delta / 1000);
+                    hasMovedThisTurn = true;
+                    incrementTurn();
+                }
+            }
+            break;
+
+        case 'left':
+            if (!continuousMode) {
+                if (!isMoving && targetX > GRID_OFFSET_X + GRID_SIZE) {
+                    targetX -= GRID_SIZE;
+                    isMoving = true;
+                    hasMovedThisTurn = true;
+                    incrementTurn();
+                }
+            } else {
+                if (player.x > GRID_OFFSET_X + GRID_SIZE/2) {
+                    player.x -= MOVE_SPEED * (game.loop.delta / 1000);
+                    hasMovedThisTurn = true;
+                    incrementTurn();
+                }
+            }
+            break;
+
+        case 'right':
+            if (!continuousMode) {
+                if (!isMoving && targetX < GRID_OFFSET_X + GAME_WIDTH - GRID_SIZE) {
+                    targetX += GRID_SIZE;
+                    isMoving = true;
+                    hasMovedThisTurn = true;
+                    incrementTurn();
+                }
+            } else {
+                if (player.x < GRID_OFFSET_X + GAME_WIDTH - GRID_SIZE/2) {
+                    player.x += MOVE_SPEED * (game.loop.delta / 1000);
+                    hasMovedThisTurn = true;
+                    incrementTurn();
+                }
+            }
+            break;
+
+        case 'z': {
+            const garlic = nearestBox(player.x, player.y);
+            plantGarlic(garlic.row, garlic.col);
+            break;
+        }
+        case 'x': {
+            const cucumber = nearestBox(player.x, player.y);
+            plantCucumber(cucumber.row, cucumber.col);
+            break;
+        }
+        case 'c': {
+            const tomato = nearestBox(player.x, player.y);
+            plantTomato(tomato.row, tomato.col);
+            break;
+        }
+        case 'u':
+            undoLastAction();
+            break;
+
+        case 'r':
+            redoLastAction();
+            break;
+    }
+}

@@ -14,10 +14,7 @@
 /* Base Styles */
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
-  min-height: 100vh;
   font-family: Arial, sans-serif;
 }
 [dir="rtl"] {
@@ -31,9 +28,13 @@ a {
 }
 
 #language-container {
-  margin-top: 1100px; /* Adjust this value to move the dropdown lower */
-  text-align: center; /* Center align if desired */
+  position: relative;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
 }
+
 select {
   font-size: 16px; /* Adjust font size */
   padding: 8px; /* Add some padding for better appearance */
@@ -47,6 +48,8 @@ a:hover {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 button {
@@ -74,8 +77,9 @@ button:focus-visible {
 #app {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
   text-align: center;
+  height: auto;
 }
 
 /* Logo Styles */
@@ -136,18 +140,15 @@ button:focus-visible {
 .game-instructions {
   position: absolute;
   left: 10px;
+  top: 10px; /* Changed from bottom: 100px to top: 10px */
   max-width: 250px;
   font-size: 12px;
   line-height: 2.5;
-}
-
-.game-instructions p {
-  font-size: 14px;
-  color: #FFFFFF;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
   padding: 10px;
-  text-align: center;
-  margin-top: 10px;
+  border-radius: 8px;
+  z-index: 100;
 }
 
 /* Growth Requirements Panel */
@@ -252,6 +253,60 @@ button:focus-visible {
 .victory-emoji {
   font-size: 48px;
   margin-bottom: 20px;
+}
+
+.control-panels {
+  position: fixed;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px;
+  z-index: 1000;
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.horizontal-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.control-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control-btn:active {
+  background-color: rgba(255, 215, 0, 0.4);
+}
+
+.plant-btn {
+  font-size: 28px;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.undo-btn, .redo-btn {
+  font-size: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 /* Light Theme */
