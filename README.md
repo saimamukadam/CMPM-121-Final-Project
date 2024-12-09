@@ -42,6 +42,7 @@ We had already started thinking about our UI since the beginning of the project,
 
 ## How we satisfied the software requirements:
 ### F1.a
+For this part, our goal was to implement our game's grid to be backed by a single contiguous byte array in either AoS or SoA format. We chose SoA (Structure-of-Arrays) format for this. 
 Structure-of-Arrays memory allocation strategy Diagram :
     [insert image here]
 ### F1.b
@@ -53,3 +54,18 @@ For this part, our goal was that the player can undo every major choice (all the
 
 ## Reflection:
 Looking back on the F1 software requirements, our team's plan hasn't changed much surprisingly. We still continue to split tasks based on availability rather than adhere strictly to team roles. When we are stuck we consult eachother and take turns trying to solve difficult parts. We still delegate tasks based on team roles but this is not a finalized assignment of tasks as we often switch around and help eachother with any difficulties that arise. It took longer to complete F1 than F0 due to multiple difficulties that arose around getting the Undo and Redo options to work, and each step of F1 was more complex than the last, which made it take longer than anticipated to finish. In F0 we had already started focusing on different UI and visual elements to aid the player in understanding things like differences between the crops, and growth stages. So in F1 we already had a good start in terms of good UI for the player. We also included an instructions panel for the player to understand how to move around and plant different crops.
+
+# Devlog Entry (F2) - 12/8/24
+
+## How we satisfied the software requirements:
+### F0 + F1
+
+### External DSL for Scenario Design
+
+### Internal DSL for Plants and Growth Conditions
+
+### Switch to Alternate Platform
+For our switch to an alternate language/platform, we decided to switch from Typescript to Javascript. 
+
+## Reflection
+Looking back on how we achieved the new F2 requirements, our team's plan hasn't changed much from when we completed F1 regarding our team roles. We did not reconsider any of the choices we previously described or Tools and Materials or our Roles as we kept them flexible since we completed F0. However, we had to decide on a new platform our language to emulate our project into. We decided to reimplement our project in Javascript which gave us complications that we are still working towards fixing. We learned through F2, that we need to remain even more flexible as we try new things and see what works and what doesn't, and that sometimes its better to come back to something later if you can't fix it right away. 
