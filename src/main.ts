@@ -1,10 +1,10 @@
 import "./style.css";
 import "phaser";
 
+
 const APP_TITLE = "Game";
 
 const canvasContainer = document.querySelector<HTMLDivElement>("#app")!;
-document.title = APP_TITLE;
 
 // Edit this for different game scenarios
 const defaultScenario: GameScenario = {
@@ -74,65 +74,11 @@ const redoCropsStack: string[] = []; // Stack for redo
 
 
 // create the instructions panel
-function createInstructionsPanel() {
-    const instructionsPanel = document.createElement('div');
-    instructionsPanel.classList.add('game-instructions');
-  
-    
-    const instructionsHeader = document.createElement('div');
-    instructionsHeader.classList.add('game-instructions-header');
-    instructionsHeader.textContent = 'GAME CONTROLS'; 
-    instructionsPanel.appendChild(instructionsHeader);
-  
-    // content text
-    const instructionsText = document.createElement('p');
-    instructionsText.innerHTML = `
-      <strong>Save Game (1-5 keys):</strong><br>
-      1 | 2 | 3 | 4 | 5<br><br>
-      <strong>Load Game (6-0 keys):</strong><br>
-      6 | 7 | 8 | 9 | 0<br><br>
-      <strong>Movement:</strong><br>
-      ↑ ↓ ← → : Grid Movement<br>
-      F : Toggle Continuous<br>
-      U : Undo<br>
-      R : Redo<br>
-      <strong>Planting:</strong><br>
-      Z : Garlic<br>
-      X : Cucumber<br>
-      C : Tomato
-    `;
-    instructionsPanel.appendChild(instructionsText);
-  
-    
-    document.body.appendChild(instructionsPanel);
-  
-    instructionsPanel.style.position = 'absolute';
-    instructionsPanel.style.bottom = '100px'; 
-    instructionsPanel.style.left = '10px';
-    instructionsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-    instructionsPanel.style.color = 'white';
-    instructionsPanel.style.padding = '10px';
-    instructionsPanel.style.borderRadius = '8px';
-    instructionsPanel.style.fontSize = '12px';
-    instructionsPanel.style.zIndex = '100';
-    instructionsPanel.style.maxWidth = '250px';
-    instructionsPanel.style.lineHeight = '2.5';
-  
-    instructionsHeader.style.fontWeight = 'bold';
-    instructionsHeader.style.color = '#FFD700';
-    instructionsHeader.style.marginBottom = '-5px'; 
-  
-    // instructions text
-    instructionsText.style.fontSize = '14px';
-    instructionsText.style.color = '#FFFFFF';
-    instructionsText.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    instructionsText.style.padding = '10px';
-    instructionsText.style.textAlign = 'center';
-    instructionsText.style.marginTop = '10px';
-}
+
+
+
   
 // Call instructions panel
-createInstructionsPanel();
 
 //Grid dimentions, use these when accessing the grid
 const GRID_SIZE = 32;
@@ -467,6 +413,8 @@ let continuousMode = false;
 let hasMovedThisTurn = false;
 let currentTurn = 0;
 let currentScenario: GameScenario;
+
+
 
 const PLANT_STAGES = {
     GARLIC: ['🌱', '🥬', '🧄'],  // sprout, growing, garlic
@@ -1082,11 +1030,11 @@ function updateWinCondition(this: Phaser.Scene) {
         victoryMessage.className = 'victory-message';
         
         victoryMessage.innerHTML = `
-            <div class="victory-emoji">🌟</div>
-            <div class="victory-title">Congratulations!</div>
-            <div class="victory-text">All farming goals achieved!</div>
-            <div class="victory-text">Your farm is flourishing!</div>
-        `;
+        <div class="victory-emoji">🌟</div>
+        <div class="victory-title">${translations[currentLanguage].congratulations}</div>
+        <div class="victory-text">${translations[currentLanguage].victoryMessage}</div>
+        <div class="victory-text">${translations[currentLanguage].victoryText}</div>
+    `;
         
         victoryOverlay.appendChild(victoryMessage);
         document.body.appendChild(victoryOverlay);
@@ -1274,3 +1222,149 @@ function getCurrentScenarioCondition(): ScenarioCondition | null {
         (!condition.turnEnd || currentTurn <= condition.turnEnd)
     ) || null;
 }
+
+
+
+
+
+  
+
+  function changeLanguage(newLanguage: string) {
+    currentLanguage = newLanguage;
+    // Re-render any text that needs to be translated
+    updateUIWithTranslations();
+}
+
+
+
+
+let translations: { [key: string]: any } = {
+    en: {
+        APP_TITLE: "Game",
+        saveGame: "Save Game",
+        loadGame: "Load Game",
+        movement: "Movement",
+        congratulations: "Congratulations!",
+        victoryMessage: "You have successfully completed all challenges!",
+        victoryText: "All crops are grown!"
+    },
+    es: {
+        APP_TITLE: "Juego",
+        saveGame: "Guardar Juego",
+        loadGame: "Cargar Juego",
+        movement: "Movimiento",
+        congratulations: "¡Felicidades!",
+        victoryMessage: "¡Has completado todos los desafíos con éxito!",
+        victoryText: "¡Todas las cosechas han crecido!"
+    },
+    fr: {
+        APP_TITLE: "Jeu",
+        saveGame: "Sauvegarder le jeu",
+        loadGame: "Charger le jeu",
+        movement: "Mouvement",
+        congratulations: "Félicitations!",
+        victoryMessage: "Vous avez réussi à compléter tous les défis!",
+        victoryText: "Toutes les cultures ont grandi!"
+    }
+    // Add other languages here
+};
+
+let currentLanguage = 'en';
+// You can set the title initially or during translations loading
+document.title = translations[currentLanguage].APP_TITLE;
+
+function createLanguageDropdown() {
+    const dropdown = document.createElement('select');
+
+    // Create options for each language
+    Object.keys(translations).forEach(lang => {
+        const option = document.createElement('option');
+        option.value = lang;
+        option.textContent = translations[lang].APP_TITLE; // Use the app title as the display
+        dropdown.appendChild(option);
+    });
+
+    // Add an event listener to handle language change
+    dropdown.addEventListener('change', (event) => {
+        currentLanguage = (event.target as HTMLSelectElement).value; // Update current language
+        updateUIWithTranslations(); // Refresh the UI
+    });
+
+    document.body.appendChild(dropdown); // Append the dropdown to the body
+}
+
+function updateUIWithTranslations() {
+    document.title = translations[currentLanguage].APP_TITLE; // Update the document title
+    createInstructionsPanel(); // Refresh the instructions panel with new translations
+}
+
+function createInstructionsPanel() {
+    const instructionsPanel = document.createElement('div');
+    instructionsPanel.classList.add('game-instructions');
+  
+    
+    const instructionsHeader = document.createElement('div');
+    instructionsHeader.classList.add('game-instructions-header');
+    instructionsHeader.textContent = translations[currentLanguage].movement; 
+    instructionsPanel.appendChild(instructionsHeader);
+  
+    // content text
+    const instructionsText = document.createElement('p');
+    instructionsText.innerHTML = `
+    <strong>${translations[currentLanguage].saveGame}</strong><br>
+    1 | 2 | 3 | 4 | 5<br><br>
+    <strong>${translations[currentLanguage].loadGame}</strong><br>
+    6 | 7 | 8 | 9 | 0<br><br>
+    <strong>${translations[currentLanguage].movement}</strong><br>
+    ↑ ↓ ← → : Grid Movement<br>
+    F : Toggle Continuous<br>
+    U : Undo<br>
+    R : Redo<br>
+    <strong>${translations[currentLanguage].planting}</strong><br>
+    Z : Garlic<br>
+    X : Cucumber<br>
+    C : Tomato
+    `;
+    instructionsPanel.appendChild(instructionsText);
+  
+    
+    document.body.appendChild(instructionsPanel);
+  
+    instructionsPanel.style.position = 'absolute';
+    instructionsPanel.style.bottom = '100px'; 
+    instructionsPanel.style.left = '10px';
+    instructionsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+    instructionsPanel.style.color = 'white';
+    instructionsPanel.style.padding = '10px';
+    instructionsPanel.style.borderRadius = '8px';
+    instructionsPanel.style.fontSize = '12px';
+    instructionsPanel.style.zIndex = '100';
+    instructionsPanel.style.maxWidth = '250px';
+    instructionsPanel.style.lineHeight = '2.5';
+  
+    instructionsHeader.style.fontWeight = 'bold';
+    instructionsHeader.style.color = '#FFD700';
+    instructionsHeader.style.marginBottom = '-5px'; 
+  
+    // instructions text
+    instructionsText.style.fontSize = '14px';
+    instructionsText.style.color = '#FFFFFF';
+    instructionsText.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    instructionsText.style.padding = '10px';
+    instructionsText.style.textAlign = 'center';
+    instructionsText.style.marginTop = '10px';
+}
+
+
+
+function onTranslationsLoaded() {
+    document.title = translations[currentLanguage].APP_TITLE;
+
+    createInstructionsPanel(); // Call the function to create the panel if required to set translated text
+}
+
+createLanguageDropdown(); // Create the language selection dropdown
+
+createInstructionsPanel();
+
+
