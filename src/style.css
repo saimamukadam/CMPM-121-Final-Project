@@ -38,6 +38,7 @@ a {
 select {
   font-size: 16px; /* Adjust font size */
   padding: 8px; /* Add some padding for better appearance */
+  order: 2;
 }
 
 
@@ -307,6 +308,29 @@ button:focus-visible {
 .undo-btn, .redo-btn {
   font-size: 20px;
   background-color: rgba(0, 0, 0, 0.5);
+}
+
+.scenarios-toggle-btn,
+.growth-toggle-btn {
+  position: relative;
+  padding: 8px 32px;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.scenarios-toggle-btn:hover,
+.growth-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.scenarios-toggle-btn {
+  order: 1;
+}
+
+.growth-toggle-btn {
+  order: 3;
 }
 
 /* Light Theme */
