@@ -1,7 +1,7 @@
 import "./style.css";
 import "phaser";
 
-const APP_TITLE = "Game";
+const APP_TITLE = "Farming Simulator!";
 
 const canvasContainer = document.querySelector<HTMLDivElement>("#app")!;
 
