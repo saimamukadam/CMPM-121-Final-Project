@@ -42,8 +42,8 @@ const defaultScenario: GameScenario = {
 //Game configuration, will probably be placing in another file in the future
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    width: 385,
+    height: 385,
     parent: "app",
     backgroundColor: "dda059", // changed background color to adhere to farmland color scheme
     scene: {
@@ -82,10 +82,13 @@ const redoCropsStack: string[] = []; // Stack for redo
 
 //Grid dimentions, use these when accessing the grid
 const GRID_SIZE = 32;
-const GAME_WIDTH = config.width as number;
-const GAME_HEIGHT = config.height as number;
+const GAME_WIDTH = 385;
+const GAME_HEIGHT = 385;
 const GRID_COLS = Math.floor(GAME_WIDTH / GRID_SIZE);
 const GRID_ROWS = Math.floor(GAME_HEIGHT / GRID_SIZE);
+
+const GRID_OFFSET_X = (config.width as number - GAME_WIDTH) / 2;
+const GRID_OFFSET_Y = (config.height as number - GAME_HEIGHT) / 2;
 
 interface GameState {
     gridTiles: {
@@ -458,8 +461,8 @@ function create(this: Phaser.Scene) {
     for (let row = 0; row < GRID_ROWS; row++) {
         gridTiles[row] = [];
         for (let col = 0; col < GRID_COLS; col++) {
-            const x = col * GRID_SIZE;
-            const y = row * GRID_SIZE;
+            const x = GRID_OFFSET_X + (col * GRID_SIZE);
+            const y = GRID_OFFSET_Y + (row * GRID_SIZE);
             // Create a transparent rectangle for each grid tile
             const tile = this.add.rectangle(
                 x + GRID_SIZE / 2, 
@@ -502,20 +505,26 @@ function create(this: Phaser.Scene) {
     graphics.lineStyle(1, 0x333333);
     
     //Vertical lines
-    for (let x = 0; x < GAME_WIDTH; x += GRID_SIZE) {
-        graphics.moveTo(x, 0);
-        graphics.lineTo(x, GAME_HEIGHT);
+    for (let x = GRID_OFFSET_X; x <= GRID_OFFSET_X + GAME_WIDTH; x += GRID_SIZE) {
+        graphics.moveTo(x, GRID_OFFSET_Y);
+        graphics.lineTo(x, GRID_OFFSET_Y + GAME_HEIGHT);
     }
     
     //Horizontal lines
-    for (let y = 0; y < GAME_HEIGHT; y += GRID_SIZE) {
-        graphics.moveTo(0, y);
-        graphics.lineTo(GAME_WIDTH, y);
+    for (let y = GRID_OFFSET_Y; y <= GRID_OFFSET_Y + GAME_HEIGHT; y += GRID_SIZE) {
+        graphics.moveTo(GRID_OFFSET_X, y);
+        graphics.lineTo(GRID_OFFSET_X + GAME_WIDTH, y);
     }
     graphics.strokePath();
 
     //Creating and placing the character on the 2D grid
-    player = this.add.rectangle(GRID_SIZE-16, GRID_SIZE-16, GRID_SIZE-4, GRID_SIZE-4, 0x00ff00);
+    player = this.add.rectangle(
+        GRID_OFFSET_X + GRID_SIZE / 2, 
+        GRID_OFFSET_Y + GRID_SIZE / 2, 
+        GRID_SIZE - 4, 
+        GRID_SIZE - 4, 
+        0x00ff00
+    );
     targetX = player.x;
     targetY = player.y;
 
@@ -656,22 +665,22 @@ if (Phaser.Input.Keyboard.JustDown(cKey)) {
         //Continuous movement
         //const speed = CONTINUOUS_MOVE_SPEED * (this.game.loop.delta / 1000);
         
-        if (cursors.left.isDown && player.x > GRID_SIZE-16) {
+        if (cursors.left.isDown && player.x > GRID_OFFSET_X + GRID_SIZE/2) {
             player.x -= MOVE_SPEED * (this.game.loop.delta / 1000);
             hasMovedThisTurn = true;
             incrementTurn();
         }
-        if (cursors.right.isDown && player.x < GAME_WIDTH - GRID_SIZE+16) {
+        if (cursors.right.isDown && player.x < GRID_OFFSET_X + GAME_WIDTH - GRID_SIZE/2) {
             player.x += MOVE_SPEED * (this.game.loop.delta / 1000);
             hasMovedThisTurn = true;
             incrementTurn();
         }
-        if (cursors.up.isDown && player.y > GRID_SIZE-16) {
+        if (cursors.up.isDown && player.y > GRID_OFFSET_Y + GRID_SIZE/2) {
             player.y -= MOVE_SPEED * (this.game.loop.delta / 1000);
             hasMovedThisTurn = true;
             incrementTurn();
         }
-        if (cursors.down.isDown && player.y < GAME_HEIGHT - GRID_SIZE+16) {
+        if (cursors.down.isDown && player.y < GRID_OFFSET_Y + GAME_HEIGHT - GRID_SIZE/2) {
             player.y += MOVE_SPEED * (this.game.loop.delta / 1000);
             hasMovedThisTurn = true;
             incrementTurn();
@@ -690,28 +699,28 @@ if (Phaser.Input.Keyboard.JustDown(cKey)) {
         //This is helpful for early stages to have explicit stop and start points.
         //Can be changed later to accomodate smoother movement.
         if (!isMoving && !keyPressed) {
-            if (cursors.left.isDown && targetX > GRID_SIZE) {
+            if (cursors.left.isDown && targetX > GRID_OFFSET_X + GRID_SIZE) {
                 targetX -= GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
                 hasMovedThisTurn = true;
                 incrementTurn();
             }
-            else if (cursors.right.isDown && targetX < GAME_WIDTH - GRID_SIZE) {
+            else if (cursors.right.isDown && targetX < GRID_OFFSET_X + GAME_WIDTH - GRID_SIZE) {
                 targetX += GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
                 hasMovedThisTurn = true;
                 incrementTurn();
             }
-            else if (cursors.up.isDown && targetY > GRID_SIZE) {
+            else if (cursors.up.isDown && targetY > GRID_OFFSET_Y + GRID_SIZE) {
                 targetY -= GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
                 hasMovedThisTurn = true;
                 incrementTurn();
             }
-            else if (cursors.down.isDown && targetY < GAME_HEIGHT - GRID_SIZE) {
+            else if (cursors.down.isDown && targetY < GRID_OFFSET_Y + GAME_HEIGHT - GRID_SIZE) {
                 targetY += GRID_SIZE;
                 isMoving = true;
                 keyPressed = true;
