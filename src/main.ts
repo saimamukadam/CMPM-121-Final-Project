@@ -6,6 +6,38 @@ const APP_TITLE = "Game";
 const canvasContainer = document.querySelector<HTMLDivElement>("#app")!;
 document.title = APP_TITLE;
 
+// Edit this for different game scenarios
+const defaultScenario: GameScenario = {
+    name: "Basic Farming",
+    description: "A standard farming scenario with occasional harsh sunlight",
+    conditions: [
+        {
+            turnStart: 0,
+            turnEnd: 20,
+            sunMultiplier: 1,
+            waterMultiplier: 1,
+            description: "Normal weather conditions"
+        },
+        {
+            turnStart: 21,
+            turnEnd: 40,
+            sunMultiplier: 20,
+            waterMultiplier: -0.5,
+            description: "Harsh sunlight period"
+        },
+        {
+            turnStart: 41,
+            sunMultiplier: 1,
+            waterMultiplier: 1,
+            description: "Return to normal conditions"
+        }
+    ],
+    victoryConditions: [
+        { plantType: 'GARLIC', requiredGrowthStage: 2, requiredCount: 5 },
+        { plantType: 'CUCUMBER', requiredGrowthStage: 2, requiredCount: 5 },
+        { plantType: 'TOMATO', requiredGrowthStage: 2, requiredCount: 5 }
+    ]
+};
 
 //Game configuration, will probably be placing in another file in the future
 const config: Phaser.Types.Core.GameConfig = {
@@ -101,25 +133,6 @@ function createInstructionsPanel() {
   
 // Call instructions panel
 createInstructionsPanel();
-
-function displayTurnCounter(this: Phaser.Scene) {
-    const turnText = this.add.text(
-        10, 
-        10, 
-        `Turn: ${currentTurn}`, 
-        { 
-            fontSize: '16px', 
-            color: '#000000' 
-        }
-    );
-    turnText.setScrollFactor(0);  // Makes text stay on screen
-    turnText.setDepth(1);         // Ensures text is visible above other elements
-    
-    // Update the turn display each frame
-    this.events.on('update', () => {
-        turnText.setText(`Turn: ${currentTurn}`);
-    });
-}
 
 //Grid dimentions, use these when accessing the grid
 const GRID_SIZE = 32;
@@ -455,12 +468,6 @@ let hasMovedThisTurn = false;
 let currentTurn = 0;
 let currentScenario: GameScenario;
 
-//Values at which the plants can grow
-const GROWTH_THRESHOLDS = {
-    WATER: 50,
-    SUN: 50
-};
-
 const PLANT_STAGES = {
     GARLIC: ['🌱', '🥬', '🧄'],  // sprout, growing, garlic
     CUCUMBER: ['🌱', '🌿', '🥒'],   // sprout, growing, cucumber
@@ -601,7 +608,6 @@ function create(this: Phaser.Scene) {
     undoKey.on('down', () => undoLastAction());
     redoKey.on('down', () => redoLastAction());
 
-    displayTurnCounter.call(this);
     currentScenario = defaultScenario;
     currentTurn = 0;
 
@@ -962,6 +968,27 @@ function plantNeighbors(row: number, col: number): number {
     return neighbors;
 }
 
+function hasAdjacentPlantType(row: number, col: number, targetType: PlantType): boolean {
+    const directions = [
+        [-1, 0], // up
+        [1, 0],  // down
+        [0, -1], // left
+        [0, 1]   // right
+    ];
+
+    for (const [dx, dy] of directions) {
+        const newRow = row + dx;
+        const newCol = col + dy;
+
+        if (newRow >= 0 && newRow < GRID_ROWS &&
+            newCol >= 0 && newCol < GRID_COLS &&
+            gridTiles[newRow][newCol].plantType === targetType) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // check plant growth
 function checkPlantGrowth(row: number, col: number) {
     const tile = gridTiles[row][col];
@@ -979,16 +1006,37 @@ function checkPlantGrowth(row: number, col: number) {
         return;
     }
 
-    //Checking to see if conditions are suitable for growth
-    if (tile.sun >= GROWTH_THRESHOLDS.SUN && tile.water >= GROWTH_THRESHOLDS.WATER) {
-        //increment growth stage
-        if (tile.growthStage < 2){
+    let shouldGrow = false;
+
+    switch (tile.plantType) {
+        case 'CUCUMBER':
+            // Cucumbers need high water (80) and low sun (20)
+            shouldGrow = tile.water >= 80 && tile.sun <= 20;
+            break;
+
+        case 'GARLIC':
+            // Garlic needs very high sun (95) and minimal water (10)
+            shouldGrow = tile.sun >= 95 && tile.water >= 10;
+            break;
+
+        case 'TOMATO':
+            // Tomatoes need to be next to another tomato
+            shouldGrow = hasAdjacentPlantType(row, col, 'TOMATO') && 
+                        tile.sun >= 30 && tile.water >= 30; // Basic sun/water requirements
+            break;
+    }
+
+    // If growth conditions are met
+    if (shouldGrow) {
+        // Increment growth stage if not fully grown
+        if (tile.growthStage < 2) {
             tile.growthStage++;
         }
         
-        //reset water content
+        // Reset water content after growth
         tile.water = 0;
     }
+
 
     //update plant emoji
     if(tile.plantText){
@@ -1026,25 +1074,28 @@ function checkWinConditions(): boolean {
 
 function updateWinCondition(this: Phaser.Scene) {
     if (checkWinConditions()) {
+        // Create victory overlay
+        const victoryOverlay = document.createElement('div');
+        victoryOverlay.className = 'victory-overlay';
+        
+        const victoryMessage = document.createElement('div');
+        victoryMessage.className = 'victory-message';
+        
+        victoryMessage.innerHTML = `
+            <div class="victory-emoji">🌟</div>
+            <div class="victory-title">Congratulations!</div>
+            <div class="victory-text">All farming goals achieved!</div>
+            <div class="victory-text">Your farm is flourishing!</div>
+        `;
+        
+        victoryOverlay.appendChild(victoryMessage);
+        document.body.appendChild(victoryOverlay);
 
-        //Win text
-        this.add.text(
-            GAME_WIDTH / 2,
-            GAME_HEIGHT / 2,
-            'Congrats!\nAll farming goals achieved!',
-            {
-                fontSize: '24px',
-                color: '#000000',
-                align: 'center',
-            }
-        ).setOrigin(0.5).setDepth(0.2);
-
-        //Pauses the game, we can add other things after this like a reset etc
+        // Pause the game
         gameManager.quitGame();
         this.scene.pause();
     }
 }
-
 function saveGame(slotNumber: number): boolean {
     try {
         const gameState: GameSaveData = {
@@ -1180,42 +1231,34 @@ function redoLastAction() {
         }
     }
 }
-
-// Determines what goes on in the game
-const defaultScenario: GameScenario = {
-    name: "Basic Farming",
-    description: "A standard farming scenario with occasional harsh sunlight",
-    conditions: [
-        {
-            turnStart: 0,
-            turnEnd: 20,
-            sunMultiplier: 1,
-            waterMultiplier: 1,
-            description: "Normal weather conditions"
-        },
-        {
-            turnStart: 21,
-            turnEnd: 40,
-            sunMultiplier: 20,
-            waterMultiplier: -0.5,
-            description: "Harsh sunlight period"
-        },
-        {
-            turnStart: 41,
-            sunMultiplier: 1,
-            waterMultiplier: 1,
-            description: "Return to normal conditions"
-        }
-    ],
-    victoryConditions: [
-        { plantType: 'GARLIC', requiredGrowthStage: 2, requiredCount: 5 },
-        { plantType: 'CUCUMBER', requiredGrowthStage: 2, requiredCount: 5 },
-        { plantType: 'TOMATO', requiredGrowthStage: 2, requiredCount: 5 }
-    ]
-};
+function updateScenarioDisplay() {
+    const conditions = document.querySelectorAll('.scenario-condition');
+    conditions.forEach(condition => condition.classList.remove('active'));
+    
+    const currentCondition = getCurrentScenarioCondition();
+    if (currentCondition) {
+        const turnRange = currentCondition.turnEnd 
+            ? `Turns ${currentCondition.turnStart}-${currentCondition.turnEnd}`
+            : `Turns ${currentCondition.turnStart}+`;
+            
+        // Find and highlight the active condition
+        conditions.forEach(condition => {
+            if (condition.querySelector('strong')?.textContent === turnRange) {
+                condition.classList.add('active');
+            }
+        });
+    }
+}
 
 function incrementTurn() {
     currentTurn++;
+    const turnDisplay = document.getElementById('turn-display');
+    if (turnDisplay) {
+        turnDisplay.textContent = `Turn: ${currentTurn}`;
+    }
+    
+    updateScenarioDisplay();
+    
     const currentCondition = getCurrentScenarioCondition();
     if (currentCondition) {
         console.log(`Turn ${currentTurn}: ${currentCondition.description}`);

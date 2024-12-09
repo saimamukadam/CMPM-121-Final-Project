@@ -1,16 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-  <div id="gameUI">
-      
-      <div id="gridContainer"></div>
-  </div>
-  
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Farming Game</title>
   </head>
   <body>
     <div id="app"></div>
+
+    <!-- Growth Requirements Panel -->
+    <div class="top-panels-container">
+      <!-- Scenario Panel (now on the left) -->
+      <div class="game-panel scenario-panel">
+        <div class="game-panel-header">CURRENT SCENARIO</div>
+        <div class="scenario-name">Basic Farming</div>
+        <div class="scenario-description">A standard farming scenario with occasional harsh sunlight</div>
+        
+        <div class="scenario-condition">
+          <strong>Turns 0-20:</strong><br>
+          Normal weather conditions<br>
+          Sun: x1 | Water: x1
+        </div>
+        
+        <div class="scenario-condition">
+          <strong>Turns 21-40:</strong><br>
+          Harsh sunlight period<br>
+          Sun: x20 | Water: x-0.5
+        </div>
+        
+        <div class="scenario-condition">
+          <strong>Turns 41+:</strong><br>
+          Return to normal conditions<br>
+          Sun: x1 | Water: x1
+        </div>
+    
+        <div class="victory-conditions">
+          <div class="victory-title">VICTORY REQUIREMENTS</div>
+          <div class="victory-requirement">• 5 Mature Garlic Plants</div>
+          <div class="victory-requirement">• 5 Mature Cucumber Plants</div>
+          <div class="victory-requirement">• 5 Mature Tomato Plants</div>
+        </div>
+      </div>
+    
+      <!-- Growth Requirements Panel (now on the right) -->
+      <div class="game-panel growth-requirements">
+        <div class="game-panel-header">GROWTH CONDITIONS</div>
+        <div id="turn-display" class="turn-counter">Turn: 0</div>
+        
+        <div class="plant-requirement">
+          <span class="plant-emoji">🥒 CUCUMBER</span>
+          • Water ≥ 80<br>
+          • Sun ≤ 20
+        </div>
+        
+        <div class="plant-requirement">
+          <span class="plant-emoji">🧄 GARLIC</span>
+          • Sun ≥ 95<br>
+          • Water ≥ 10
+        </div>
+        
+        <div class="plant-requirement">
+          <span class="plant-emoji">🍅 TOMATO</span>
+          • Needs adjacent tomato<br>
+          • Sun ≥ 30<br>
+          • Water ≥ 30
+        </div>
+        
+        <div class="plant-requirement warning">
+          <span class="plant-emoji">⚠️ WARNING</span>
+          Plants die with 3+ neighbors
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
