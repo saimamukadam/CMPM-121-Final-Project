@@ -1236,6 +1236,16 @@ let translations: { [key: string]: any } = {
         congratulations: "Congratulations!",
         victoryMessage: "You have successfully completed all challenges!",
         victoryText: "All crops are grown!",
+        planting: "Planting", // Added translation for planting
+        controls: {
+            movement: "↑ ↓ ← → : Grid Movement",
+            toggleContinuous: "F : Toggle Continuous",
+            undo: "U : Undo",
+            redo: "R : Redo",
+            garlic: "Z : Garlic",
+            cucumber: "X : Cucumber",
+            tomato: "C : Tomato"
+        }
     },
     es: {
         APP_TITLE: "Juego",
@@ -1244,7 +1254,17 @@ let translations: { [key: string]: any } = {
         movement: "Movimiento",
         congratulations: "¡Felicidades!",
         victoryMessage: "¡Has completado todos los desafíos con éxito!",
-        victoryText: "¡Todas las cosechas han crecido!"
+        victoryText: "¡Todas las cosechas han crecido!",
+        planting: "Plantación", // Added translation for planting
+        controls: {
+            movement: "↑ ↓ ← → : Movimiento en cuadrícula",
+            toggleContinuous: "F : Alternar continuo",
+            undo: "U : Deshacer",
+            redo: "R : Rehacer",
+            garlic: "Z : Ajo",
+            cucumber: "X : Pepino",
+            tomato: "C : Tomate"
+        }
     },
     ar: {
         APP_TITLE: "لعبة",
@@ -1254,6 +1274,16 @@ let translations: { [key: string]: any } = {
         congratulations: "تهانينا!",
         victoryMessage: "لقد نجحت في إكمال جميع التحديات!",
         victoryText: "كل المحاصيل قد نمت!",
+        planting: "زراعة", // Added translation for planting
+        controls: {
+            movement: "↑ ↓ ← → : حركة الشبكة",
+            toggleContinuous: "F : تشغيل مستمر",
+            undo: "U : تراجع",
+            redo: "R : إعادة",
+            garlic: "Z : ثوم",
+            cucumber: "X : خيار",
+            tomato: "C : طماطم"
+        },
         externalLink: "لمزيد من المعلومات عن اللغة العربية، انقر هنا: [موقع](https://example.com)"
     },
     ja: {
@@ -1264,6 +1294,16 @@ let translations: { [key: string]: any } = {
         congratulations: "おめでとうございます!",
         victoryMessage: "すべての課題を成功裏に完了しました!",
         victoryText: "すべての作物が成長しました!",
+        planting: "植え付け", // Added translation for planting
+        controls: {
+            movement: "↑ ↓ ← → : グリッド移動",
+            toggleContinuous: "F : 連続トグル",
+            undo: "U : 元に戻す",
+            redo: "R : やり直し",
+            garlic: "Z : にんにく",
+            cucumber: "X : きゅうり",
+            tomato: "C : トマト"
+        },
         externalLink: "詳細については、こちらをクリック: [サイト](https://example.com)"
     }
 };
@@ -1315,6 +1355,12 @@ function updateUIWithTranslations() {
 }
 
 function createInstructionsPanel() {
+
+    // Check if an existing instructions panel exists and remove it
+    const existingPanel = document.querySelector('.game-instructions');
+    if (existingPanel) {
+        existingPanel.remove(); // Remove the old panel before adding a new one
+    }
     const instructionsPanel = document.createElement('div');
     instructionsPanel.classList.add('game-instructions');
   
@@ -1332,15 +1378,15 @@ function createInstructionsPanel() {
     <strong>${translations[currentLanguage].loadGame}</strong><br>
     6 | 7 | 8 | 9 | 0<br><br>
     <strong>${translations[currentLanguage].movement}</strong><br>
-    ↑ ↓ ← → : Grid Movement<br>
-    F : Toggle Continuous<br>
-    U : Undo<br>
-    R : Redo<br>
+    ${translations[currentLanguage].controls.movement}<br>
+    ${translations[currentLanguage].controls.toggleContinuous}<br>
+    ${translations[currentLanguage].controls.undo}<br>
+    ${translations[currentLanguage].controls.redo}<br>
     <strong>${translations[currentLanguage].planting}</strong><br>
-    Z : Garlic<br>
-    X : Cucumber<br>
-    C : Tomato
-    `;
+    ${translations[currentLanguage].controls.garlic}<br>
+    ${translations[currentLanguage].controls.cucumber}<br>
+    ${translations[currentLanguage].controls.tomato}
+`;
     instructionsPanel.appendChild(instructionsText);
   
     document.body.appendChild(instructionsPanel);
