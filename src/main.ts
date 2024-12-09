@@ -1229,7 +1229,7 @@ function getCurrentScenarioCondition(): ScenarioCondition | null {
 
 let translations: { [key: string]: any } = {
     en: {
-        APP_TITLE: "Game",
+        APP_TITLE: "Farming Game",
         saveGame: "Save Game",
         loadGame: "Load Game",
         movement: "Movement",
@@ -1245,10 +1245,25 @@ let translations: { [key: string]: any } = {
             garlic: "Z : Garlic",
             cucumber: "X : Cucumber",
             tomato: "C : Tomato"
-        }
+        },
+        CURRENT_SCENARIO: "CURRENT SCENARIO", // Translated title
+        SCENARIO_NAME: "Basic Farming", // Default scenario name
+        SCENARIO_DESCRIPTION: "A standard farming scenario with occasional harsh sunlight",
+        VICTORY_REQUIREMENTS: "VICTORY REQUIREMENTS", // Header for victory requirements
+        VICTORY_RULES: [
+            "• 5 Mature Garlic Plants",
+            "• 5 Mature Cucumber Plants",
+            "• 5 Mature Tomato Plants",
+        ],
+        GROWTH_CONDITIONS: "GROWTH CONDITIONS", // Header for growth conditions
+        TURN_DISPLAY: "Turn: ", // Label for turn display
+        CUCUMBER: "🥒 CUCUMBER • Water ≥ 80 • Sun ≤ 20",
+        GARLIC: "🧄 GARLIC • Sun ≥ 95 • Water ≥ 10",
+        TOMATO: "🍅 TOMATO • Needs adjacent tomato • Sun ≥ 30 • Water ≥ 30",
+        WARNING: "⚠️ WARNING • Plants die with 3+ neighbors",
     },
     es: {
-        APP_TITLE: "Juego",
+        APP_TITLE: "Juego de Agricultura",
         saveGame: "Guardar Juego",
         loadGame: "Cargar Juego",
         movement: "Movimiento",
@@ -1263,11 +1278,26 @@ let translations: { [key: string]: any } = {
             redo: "R : Rehacer",
             garlic: "Z : Ajo",
             cucumber: "X : Pepino",
-            tomato: "C : Tomate"
-        }
+            tomato: "C : Tomate",
+        },
+        CURRENT_SCENARIO: "ESCENARIO ACTUAL", // Translated title
+        SCENARIO_NAME: "Cultivo Básico", // Default scenario name
+        SCENARIO_DESCRIPTION: "Un escenario de agricultura estándar con luz solar intensa ocasional",
+        VICTORY_REQUIREMENTS: "REQUISITOS DE VICTORIA", // Header for victory requirements
+        VICTORY_RULES: [
+            "• 5 Plantas de Ajo Maduras",
+            "• 5 Plantas de Pepino Maduras",
+            "• 5 Plantas de Tomate Maduras",
+        ],
+        GROWTH_CONDITIONS: "CONDICIONES DE CRECIMIENTO", // Header for growth conditions
+        TURN_DISPLAY: "Turno: ", // Label for turn display
+        CUCUMBER: "🥒 PEPINO • Agua ≥ 80 • Sol ≤ 20",
+        GARLIC: "🧄 AJO • Sol ≥ 95 • Agua ≥ 10",
+        TOMATO: "🍅 TOMATE • Necesita un tomate adyacente • Sol ≥ 30 • Agua ≥ 30",
+        WARNING: "⚠️ ADVERTENCIA • Las plantas mueren con 3+ vecinos",
     },
     ar: {
-        APP_TITLE: "لعبة",
+        APP_TITLE: "لعبة الزراعة",
         saveGame: "حفظ اللعبة",
         loadGame: "تحميل اللعبة",
         movement: "حركة",
@@ -1282,9 +1312,23 @@ let translations: { [key: string]: any } = {
             redo: "R : إعادة",
             garlic: "Z : ثوم",
             cucumber: "X : خيار",
-            tomato: "C : طماطم"
+            tomato: "C : طماطم",
         },
-        externalLink: "لمزيد من المعلومات عن اللغة العربية، انقر هنا: [موقع](https://example.com)"
+        CURRENT_SCENARIO: "السيناريو الحالي", // Translated title
+        SCENARIO_NAME: "زراعة أساسية", // Default scenario name
+        SCENARIO_DESCRIPTION: "سيناريو زراعة قياسي مع ضوء شمس شديد في بعض الأحيان",
+        VICTORY_REQUIREMENTS: "متطلبات النصر", // Header for victory requirements
+        VICTORY_RULES: [
+            "• 5 نباتات ثوم ناضجة",
+            "• 5 نباتات خيار ناضجة",
+            "• 5 نباتات طماطم ناضجة",
+        ],
+        GROWTH_CONDITIONS: "ظروف النمو", // Header for growth conditions
+        TURN_DISPLAY: "الدور: ", // Label for turn display
+        CUCUMBER: "🥒 خيار • ماء ≥ 80 • شمس ≤ 20",
+        GARLIC: "🧄 ثوم • شمس ≥ 95 • ماء ≥ 10",
+        TOMATO: "🍅 طماطم • يحتاج إلى طماطم مجاورة • شمس ≥ 30 • ماء ≥ 30",
+        WARNING: "⚠️ تحذير • تموت النباتات مع 3+ جيران",
     },
     ja: {
         APP_TITLE: "ゲーム",
@@ -1302,9 +1346,23 @@ let translations: { [key: string]: any } = {
             redo: "R : やり直し",
             garlic: "Z : にんにく",
             cucumber: "X : きゅうり",
-            tomato: "C : トマト"
+            tomato: "C : トマト",
         },
-        externalLink: "詳細については、こちらをクリック: [サイト](https://example.com)"
+        CURRENT_SCENARIO: "現在のシナリオ", // Translated title
+        SCENARIO_NAME: "基本的な農業", // Default scenario name
+        SCENARIO_DESCRIPTION: "時折厳しい日差しを伴う標準的な農業シナリオ",
+        VICTORY_REQUIREMENTS: "勝利条件", // Header for victory requirements
+        VICTORY_RULES: [
+            "• 成熟したニンニクの植物 5 植",
+            "• 成熟したキュウリ 5 植",
+            "• 成熟したトマト 5 植",
+        ],
+        GROWTH_CONDITIONS: "成長条件", // Header for growth conditions
+        TURN_DISPLAY: "ターン: ", // Label for turn display
+        CUCUMBER: "🥒 キュウリ • 水 ≥ 80 • 日差し ≤ 20",
+        GARLIC: "🧄 ニンニク • 日差し ≥ 95 • 水 ≥ 10",
+        TOMATO: "🍅 トマト • 隣接したトマトが必要 • 日差し ≥ 30 • 水 ≥ 30",
+        WARNING: "⚠️ 警告 • 3つ以上の隣接植物で植物が枯れる",
     }
 };
 
@@ -1342,15 +1400,56 @@ function createLanguageDropdown() {
     dropdownContainer.appendChild(dropdown); // Append the dropdown to its container
 }
 function updateUIWithTranslations() {
-    document.title = translations[currentLanguage].APP_TITLE; // Update document title
+    // Update document title
+    document.title = translations[currentLanguage].APP_TITLE;
+
+    // Update static header elements for the scenario panel
+    document.querySelector('.game-panel-header')!.textContent = translations[currentLanguage].CURRENT_SCENARIO;
+    document.querySelector('.scenario-name')!.textContent = translations[currentLanguage].SCENARIO_NAME;
+    document.querySelector('.scenario-description')!.textContent = translations[currentLanguage].SCENARIO_DESCRIPTION;
     
-    // Set direction based on language
-    if (currentLanguage === 'ar') {
-        document.body.setAttribute('dir', 'rtl');
-    } else {
-        document.body.setAttribute('dir', 'ltr');
+    // Update the victory requirements panel
+    const victoryRequirements = document.querySelector('.victory-conditions');
+    if (victoryRequirements) {
+        const titleElement = victoryRequirements.querySelector('.victory-title');
+        if (titleElement) {
+            titleElement.textContent = translations[currentLanguage].VICTORY_REQUIREMENTS;
+        }
+
+        const requirementsList = victoryRequirements.querySelectorAll('.victory-requirement');
+        requirementsList.forEach((req, index) => {
+            if (translations[currentLanguage].VICTORY_RULES[index]) {
+                req.textContent = translations[currentLanguage].VICTORY_RULES[index];
+            }
+        });
     }
 
+    // Update growth conditions panel
+    const growthConditionsHeader = document.querySelector('.game-panel-header.growth-requirements');
+    if (growthConditionsHeader) {
+        growthConditionsHeader.textContent = translations[currentLanguage].GROWTH_CONDITIONS;
+    }
+
+    const turnDisplay = document.querySelector('.turn-counter');
+    if (turnDisplay) {
+        turnDisplay.textContent = translations[currentLanguage].TURN_DISPLAY + "0"; // Placeholder for the actual turn count
+    }
+
+    // Update plant requirements text
+    const plantRequirements = document.querySelectorAll('.plant-requirement');
+    if (plantRequirements.length > 0) {
+        plantRequirements[0].innerHTML = translations[currentLanguage].CUCUMBER;
+        plantRequirements[1].innerHTML = translations[currentLanguage].GARLIC;
+        plantRequirements[2].innerHTML = translations[currentLanguage].TOMATO;
+    }
+
+    // Update warning text
+    const warningElement = document.querySelector('.plant-requirement.warning');
+    if (warningElement) {
+        warningElement.innerHTML = translations[currentLanguage].WARNING;
+    }
+
+    // Update instruction panel as needed
     createInstructionsPanel(); // Refresh the instructions panel with new translations
 }
 
