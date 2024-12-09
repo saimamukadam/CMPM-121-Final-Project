@@ -60,9 +60,14 @@ Looking back on the F1 software requirements, our team's plan hasn't changed muc
 ### F0 + F1
 Our previous F0 and F1 requirements remain satisfied in the latest version of our software as we still have our basic gameplay mechanics, symbols/UI, gameplay progression, etc... No major changes were made.
 ### External DSL for Scenario Design
-Our DSL is based on . [add more]
+We decided to keep the scenario design located at the top of our main.ts file so the user would be able to easily edit the content and cater their gaming experience to their liking. We kept the DSL in Typescript, however it is still very welcoming to the user and allows for easy permutation.
+Here is an example to our basic External DSL ![External DSL for game scenarios example: ](./External-DSL.png)
 ### Internal DSL for Plants and Growth Conditions
-[add more]
+Internal DSL was written in TypeScript. We added several limiations on plant growth conditions. For example, Tomatos can only grow when surrounded by two other tomatos.
+Here is a snippet of the code for plant growth conditions ![Internal DSL for plant growth example: ](./Internal-DSL.png)
+
+In this code we see that tile.water and tile.sun are two of the more prevalent factors to plant growth. Sun is randomly decided between turns depending on game scenario. Whereas water either
+slowly or rapidly accumulates depending on user chosen scenario. We also employed a helper function that assists in determining how many of a similar crop is neighboring (hasAdjacentPlantType()).
 ### Switch to Alternate Platform
 For our switch to an alternate language/platform, we decided to switch from Typescript to Javascript. We chose to do this as we surmised that it would be the easiest/least complicated switch and wouldn't completely break what we currently have. However, switching to Javascript proved to be more difficult than we expected as we gained many errors we had to resolve in doing so. After some debugging it worked, and we assume it would've been harder still if we had chosen a different alternate platform.
 

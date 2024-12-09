@@ -9,11 +9,14 @@
   <body>
     <div id="app"></div>
     <div id="language-container"></div> <!-- Container for language dropdown -->
+    <button id="scenarios-toggle" class="scenarios-toggle-btn">Hide Scenarios ▼</button>
+    <button id="growth-toggle" class="growth-toggle-btn">Hide Growth Conditions ▼</button>
+    <button id="instructions-toggle" class="instructions-toggle-btn">Hide Instructions ▼</button>
     <script src="path/to/phaser.js"></script>
     <!-- Growth Requirements Panel -->
     <div class="top-panels-container">
       <!-- Scenario Panel (now on the left) -->
-      <div class="game-panel scenario-panel">
+      <div class="game-panel scenario-panel" id="scenarios-panel">
         <div class="game-panel-header">CURRENT SCENARIO</div>
         <div class="scenario-name">Basic Farming</div>
         <div class="scenario-description">A standard farming scenario with occasional harsh sunlight</div>
@@ -41,11 +44,11 @@
           <div class="victory-requirement"></div>
           <div class="victory-requirement"></div>
           <div class="victory-requirement"></div>
-</div>
+        </div>
       </div>
     
       <!-- Growth Requirements Panel (now on the right) -->
-      <div class="game-panel growth-requirements">
+      <div class="game-panel growth-requirements" id="growth-panel">
         <div class="game-panel-header">GROWTH CONDITIONS</div>
         <div id="turn-display" class="turn-counter">Turn: 0</div>
         
@@ -108,5 +111,44 @@
         });
       }
     </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          const toggleButton = document.getElementById('scenarios-toggle');
+          const scenariosPanel = document.getElementById('scenarios-panel');
+          const instructionsButton = document.getElementById('instructions-toggle');
+          let instructionsVisible = true;
+          let isVisible = true;
+  
+          if (toggleButton && scenariosPanel) {
+              toggleButton.addEventListener('click', () => {
+                  isVisible = !isVisible;
+                  scenariosPanel.style.display = isVisible ? 'block' : 'none';
+                  toggleButton.innerHTML = `${isVisible ? 'Hide' : 'Show'} Scenarios ${isVisible ? '▼' : '▲'}`;
+              });
+          }
+
+          const growthButton = document.getElementById('growth-toggle');
+          const growthPanel = document.getElementById('growth-panel');
+          let growthVisible = true;
+
+          if (growthButton && growthPanel) {
+              growthButton.addEventListener('click', () => {
+                  growthVisible = !growthVisible;
+                  growthPanel.style.display = growthVisible ? 'block' : 'none';
+                  growthButton.innerHTML = `${growthVisible ? 'Hide' : 'Show'} Growth Conditions ${growthVisible ? '▼' : '▲'}`;
+              });
+          }
+          if (instructionsButton) {
+            instructionsButton.addEventListener('click', () => {
+              const instructionsPanel = document.querySelector('.game-instructions');
+              if (instructionsPanel) {
+                  instructionsVisible = !instructionsVisible;
+                  instructionsPanel.style.display = instructionsVisible ? 'block' : 'none';
+                  instructionsButton.innerHTML = `${instructionsVisible ? 'Hide' : 'Show'} Instructions ${instructionsVisible ? '▼' : '▲'}`;
+              }
+            });
+          }
+      });
+  </script>
   </body>
 </html>
